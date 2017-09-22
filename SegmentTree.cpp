@@ -1,14 +1,12 @@
 // based on http://codeforces.com/blog/entry/18051
-#include <bits/stdc++.h>
+#include <vector>
+#include <cstdint>
+#include <limits>
 
 template <class E>
 struct Combine {
-    virtual E identity() const {
-        return std::numeric_limits<E>::max();
-    };
-    virtual E combine(const E &left, const E &right) {
-        return std::min(left, right);
-    }
+    virtual E identity() const = 0; 
+    virtual E combine(const E &left, const E &right) = 0;
 };
 
 template <class E>

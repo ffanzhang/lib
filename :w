@@ -6,40 +6,38 @@
 #include <cassert>
 using namespace std;
 
-template <class I, class E>
-void testSegmentTreeHelper(vector<E> &elements, I n) {
-    for (I i = 0; i < n; i++) {
+void testSegmentTree() {
+    std::vector<int> elements;
+    for (int i = 0; i < 100; i++) {
         elements.push_back(i + 1);
     }
-    Combine<E> *a = new MyMax<E>();
-    SegmentTree<I, E> t1(elements, a);
+    Combine<int> *c = new MyMax<int>();
+    SegmentTree<int, int> t1(elements, c);
     assert(t1.query(0, 100) == 100);
     assert(t1.query(0, 50) == 50);
     assert(t1.query(50, 100) == 100);
 
-    Combine<E> *b = new MySum<E>();
-    SegmentTree<I, E> t2(elements, b);
+    /*
+    Combine<int> *d = new Combine<int>();
+    SegmentTree<int, int> t2(elements, d);
+    assert(t2.query(0, 100) == 1);
+    assert(t2.query(0, 50) == 1);
+    assert(t2.query(50, 100) == 51);
+    */
 
-    assert(t2.query(0, 100) == 5050);
-    assert(t2.query(0, 50) == (50 * 51) / 2);
+    SegmentTree<int, int> t3(elements, (new MySum<int>()));
+    assert(t3.query(0, 100) == 5050);
+    assert(t3.query(0, 50) == (50 * 51) / 2);
     for (int i = 1; i <= 100; i++) {
-        assert(t2.query(0, i) == i * (i + 1) / 2);
+        assert(t3.query(0, i) == i * (i + 1) / 2);
     }
-}
-
-void testSegmentTree() {
-    std::vector<int> elements0;
-    std::vector<long long> elements1;
-    std::vector<__int128> elements2;
-    testSegmentTreeHelper(elements0, 100);
-    testSegmentTreeHelper(elements1, 100);
-    testSegmentTreeHelper(elements2, 100);
+    Combine<__int128> *e= new MySum<__int128>();
+//    SegmentTree<__int128, __int128> t4(elements, e);
 }
 
 template <class I, class T>
 void testUnionHelper(Union<T> *u, I n) {
     assert(n > 9);
-    assert(u->components() == n);
     u->merge(1, 2);
     assert(u->is_connected(1, 2) == true);
     u->merge(3, 4);
@@ -48,6 +46,7 @@ void testUnionHelper(Union<T> *u, I n) {
     u->merge(1, 3);
     assert(u->is_connected(1, 4) == true);
     assert(u->is_connected(1, 5) == false);
+    assert(u->components() == n);
     for (I i = 0; i < n - 1; i++) {
         u->merge(i, i + 1);
     }
@@ -65,9 +64,11 @@ void testUnion() {
     Union<__int128> *x = new Union<__int128>(n);
 
     testUnionHelper(u, n);
-    testUnionHelper(v, n);
-    testUnionHelper(w, n);
-    testUnionHelper(x, n);
+    testUnionHelper(v, 100);
+    testUnionHelper(w, 100);
+    testUnionHelper(x, 10 + rand() % 100);
+
+
 }
 
 int main() {
