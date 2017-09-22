@@ -1,32 +1,28 @@
-#include <bits/stdc++.h>
-#include <cassert>
-
 // union find with path compression and naive merge
-template <class T>
-class Union {
-public:
-    std::vector<T> parent;
-    int count = 0;
-    Union(T n) {
+template <class E>
+struct Union {
+    E *parent;
+    E count = (E) 0;
+    Union(E n) {
         count = n;
-        parent.resize(n);
-        for (T i = 0; i < n; i++) {
+        parent = new E [n];
+        for (E i = 0; i < n; i++) {
             parent[i] = i;
         }
     }
     ~Union() {
-        parent.clear();
+        delete parent;
     }
-    inline T components() {
+    inline E components() {
         return count;
     }
-    inline T find(T u) {
+    inline E find(E u) {
         return parent[u] = (parent[u] == u ? u : find(parent[u]));
     }
-    inline bool is_connected(T u, T v) {
+    inline bool is_connected(E u, E v) {
         return find(u) == find(v);
     }
-    virtual void merge(T u, T v) {
+    virtual void merge(E u, E v) {
         u = find(u); v = find(v);
         if (u == v) return;
         parent[u] = v;
@@ -35,18 +31,17 @@ public:
 };
 
 // with rank compression 
-template <class T>
-class UnionByRank : public Union<T> {
-    std::vector<T> rank;
+template <class E>
+class UnionByRank : public Union<E> {
+    E *rank;
 public:
-    UnionByRank(T n) : Union<T>(n) {
-        rank.resize(n);
-        std::fill(rank.begin(), rank.end(), 0);
+    UnionByRank(E n) : Union<E>(n) {
+        rank = new E [n]();
     }
     ~UnionByRank() {
-        rank.clear();
+        delete rank;
     }
-    void merge(T u, T v) {
+    void merge(E u, E v) {
         u = this->find(u); v = this->find(v);
         if (u == v) return;
         if (rank[u] < rank[v]) {
@@ -62,18 +57,20 @@ public:
 };
 
 // with size compression
-template <class T>
-class UnionBySize : public Union<T> {
-    std::vector<T> size;
+template <class E>
+class UnionBySize : public Union<E> {
+    E *size;
 public:
-    UnionBySize(T n) : Union<T>(n) {
-        size.resize(n);
-        std::fill(size.begin(), size.end(), 1);
+    UnionBySize(E n) : Union<E>(n) {
+        size = new E [n]();
+        for (int i = 0; i < n; i++) {
+            size[i] = 1;
+        }
     }
     ~UnionBySize() {
-        size.clear();
+        delete size;
     }
-    void merge(T u, T v) {
+    void merge(E u, E v) {
         u = this->find(u); v = this->find(v);
         if (u == v) return;
         if (size[u] < size[v]) {
@@ -86,25 +83,3 @@ public:
         this->count--;
     }
 };
-
-void test(Union<long long> *u, long long n) {
-    assert(u->components() == n);
-    for (long long i = 0; i < n - 1; i++) {
-        u->merge(i, i + 1);
-    }
-    assert(u->is_connected(0, n - 1) == true);
-    assert(u->is_connected(n / 2, 0) == true);
-    assert(u->components() == 1);
-
-}
-
-int main() {
-    long long n = 100;
-    Union<long long> *u = new Union<long long>(n);
-    Union<long long> *v = new UnionByRank<long long>(n);
-    Union<long long> *w = new UnionBySize<long long>(n);
-    test(u, n);
-    test(v, n);
-    test(w, n);
-    return 0;
-}
