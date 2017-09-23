@@ -63,7 +63,7 @@ class UnionBySize : public Union<E> {
 public:
     UnionBySize(E n) : Union<E>(n) {
         size = new E [n]();
-        for (int i = 0; i < n; i++) {
+        for (E i = 0; i < n; i++) {
             size[i] = 1;
         }
     }
