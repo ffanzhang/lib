@@ -10,6 +10,15 @@ struct Combine {
 };
 
 template <class E>
+struct MyMin : public Combine<E> {
+    E identity () const {
+        return std::numeric_limits<E>::max();
+    }
+    E combine(const E &left, const E &right) {
+        return std::min(left, right);
+    }
+};
+template <class E>
 struct MyMax : public Combine<E> {
     E identity () const {
         return std::numeric_limits<E>::lowest();
@@ -38,6 +47,18 @@ class SegmentTree {
     I height;
     I n;
 public:
+    SegmentTree(I n) {
+        this->n = n;
+        I np = n;
+        height = 0;
+        while (np > 0) {
+            np >>= 1;
+            height++;
+        }
+        delay = new E [n]();
+        tree.resize(2 * n);
+        this->combine = new MyMin<E>();
+    }
     SegmentTree(const std::vector<E> &elements, Combine<E> *combine) {
         n = elements.size();
         I np = n;
@@ -62,7 +83,7 @@ public:
     void modify_node(I i, E value, I length) {
         tree[i] += value * length;
         if (i < n)  {
-            delay[i] = value;
+            delay[i] += value;
         }
     }
     void push(I l, I r) {
@@ -82,7 +103,7 @@ public:
         I length = 2;
         for (l += n, r += n - 1; l > 1; length <<= 1) {
             l >>= 1; r >>= 1;
-            for (I i = r; i >= l; i++) {
+            for (I i = r; i >>= l; i++) {
                 if (delay[i] == 0) {
                     tree[i] = combine->combine(tree[i << 1], tree[(i << 1)|1]);
                 } else {
@@ -97,8 +118,8 @@ public:
         push(r - 1, r);
         I tl = l, tr = r, length = 1;
         for (l += n, r += n; l < r; l >>= 1, r >>= 1, length <<= 1) {
-            if (l & 1) modify_node(l++, value, length);
-            if (r & 1) modify_node(--r, value, length);
+            if (l&1) modify_node(l++, value, length);
+            if (r&1) modify_node(--r, value, length);
         }
         pull(tl, tl + 1);
         pull(tr - 1, tr);

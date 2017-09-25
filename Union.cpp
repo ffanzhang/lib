@@ -2,7 +2,7 @@
 template <class E>
 struct Union {
     E *parent;
-    E count = (E) 0;
+    E count;
     Union(E n) {
         count = n;
         parent = new E [n];

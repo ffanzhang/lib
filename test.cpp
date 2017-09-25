@@ -34,6 +34,21 @@ void testSegmentTree() {
     testSegmentTreeHelper(elements0, 100);
     testSegmentTreeHelper(elements1, 100);
     testSegmentTreeHelper(elements2, 100);
+
+    SegmentTree<int, __int128> st1(10);
+    st1.modify(0, 10, 1);
+    st1.modify(3, 6, 1);
+    st1.modify(4, 7, 1);
+    st1.modify(4, 8, 1);
+    st1.modify(1, 8, 1);
+    st1.modify(5, 6, 1);
+    assert(st1.query(1, 2) == 2);
+    assert(st1.query(5, 6) == 6);
+    assert(st1.query(9, 10) == 1);
+    assert(st1.query(4, 5) == 5);
+    assert(st1.query(9, 10) == 1);
+    assert(st1.query(6, 7) == 4);
+    assert(st1.query(7, 8) == 3);
 }
 
 template <class I, class T>
