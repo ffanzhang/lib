@@ -47,10 +47,8 @@ class SegmentTree {
     I height;
     I n;
 public:
-    SegmentTree(I n) {
-        this->n = n;
+    SegmentTree(I n) : n(n), height(0) {
         I np = n;
-        height = 0;
         while (np > 0) {
             np >>= 1;
             height++;

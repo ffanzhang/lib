@@ -1,5 +1,6 @@
 #include "SegmentTree.cpp"
 #include "Union.cpp"
+#include "Flow.cpp"
 #include <cstdlib>
 #include <iostream>
 #include <cstdint>
@@ -35,13 +36,15 @@ void testSegmentTree() {
     testSegmentTreeHelper(elements1, 100);
     testSegmentTreeHelper(elements2, 100);
 
-    SegmentTree<int, __int128> st1(10);
+    SegmentTree<int, long long> st1(20);
+
     st1.modify(0, 10, 1);
     st1.modify(3, 6, 1);
     st1.modify(4, 7, 1);
     st1.modify(4, 8, 1);
     st1.modify(1, 8, 1);
     st1.modify(5, 6, 1);
+
     assert(st1.query(1, 2) == 2);
     assert(st1.query(5, 6) == 6);
     assert(st1.query(9, 10) == 1);
@@ -69,6 +72,7 @@ void testUnionHelper(Union<T> *u, I n) {
     assert(u->is_connected(0, n - 1) == true);
     assert(u->is_connected(n / 2, 0) == true);
     assert(u->components() == 1);
+    vector<int> v;
 }
 
 void testUnion() {
@@ -85,9 +89,20 @@ void testUnion() {
     testUnionHelper(x, n);
 }
 
+void testFlow() {
+    Flow<int, int> flo(10);
+    flo.add_edge(0, 1, 3);
+    flo.add_edge(1, 2, 3);
+    flo.add_edge(2, 0, 2);
+    flo.add_edge(1, 1, 5);
+    flo.add_edge(2, 3, 3);
+    flo.add_edge(3, 2, 3);
+    assert(flo.max_flow(0, 3) == 5);
+}
+
 int main() {
     testUnion();
     testSegmentTree();
-
+    testFlow();
     return 0;
 }
