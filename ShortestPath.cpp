@@ -59,12 +59,10 @@ struct Dijkstra : public ShortestPath<I, E> {
             visited[cur_node.index] = true;
             for (auto child : graph[cur_node.index]) {
                 auto child_index = child.first;
-                if (!visited[child_index]) {
-                   auto child_cost = child.second;
-                    if (costs[child_index] > cur_node.total_cost + child_cost) {
-                        costs[child_index] = cur_node.total_cost + child_cost;
-                        pq.push(Distance<I, E>(child_index, costs[child_index]));
-                    }
+                auto child_cost = child.second;
+                if (!visited[child_index] && costs[child_index] > cur_node.total_cost + child_cost) {
+                    costs[child_index] = cur_node.total_cost + child_cost;
+                    pq.push(Distance<I, E>(child_index, costs[child_index]));
                 }
             }
         }
