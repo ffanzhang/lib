@@ -1,6 +1,7 @@
 #include "SegmentTree.cpp"
 #include "Union.cpp"
 #include "Flow.cpp"
+#include "ShortestPath.cpp"
 #include <cstdlib>
 #include <iostream>
 #include <cstdint>
@@ -93,16 +94,26 @@ void testFlow() {
     Flow<int, int> flo(10);
     flo.add_edge(0, 1, 3);
     flo.add_edge(1, 2, 3);
-    flo.add_edge(2, 0, 2);
-    flo.add_edge(1, 1, 5);
-    flo.add_edge(2, 3, 3);
-    flo.add_edge(3, 2, 3);
-    assert(flo.max_flow(0, 3) == 5);
+    flo.add_edge(0, 2, 3);
+    flo.add_edge(0, 4, 3);
+    flo.add_edge(4, 2, 3);
+    assert(flo.max_flow(0, 2) == 9);
+}
+void testShortestPath() {
+    Dijkstra<int, int> d(10);
+    d.add_edge(1, 2, 5);
+    d.add_edge(2, 3, 7);
+    assert(d.shortest_path(1, 3) == 12);
+    d.add_edge(1, 2, 4);
+    d.add_edge(1, 3, 7);
+    d.add_edge(2, 3, 1);
+    assert(d.shortest_path(1, 3) == 5);
 }
 
 int main() {
     testUnion();
     testSegmentTree();
     testFlow();
+    testShortestPath();
     return 0;
 }

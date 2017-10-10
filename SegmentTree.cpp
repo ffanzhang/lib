@@ -8,7 +8,6 @@ struct Combine {
     virtual E identity() const = 0; 
     virtual E combine(const E &left, const E &right) = 0;
 };
-
 template <class E>
 struct MyMin : public Combine<E> {
     E identity () const {
@@ -27,7 +26,6 @@ struct MyMax : public Combine<E> {
         return std::max(left, right);
     }
 };
-
 template <class E>
 struct MySum : public Combine<E> {
     E identity () const {
@@ -37,8 +35,6 @@ struct MySum : public Combine<E> {
         return left + right;
     }
 };
-
-
 template <class I, class E>
 class SegmentTree {
     std::vector<E> tree;
