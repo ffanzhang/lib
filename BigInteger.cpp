@@ -26,7 +26,7 @@ public:
     BigInteger &operator=(const BigInteger &);
     BigInteger operator+(const BigInteger &) const;
     BigInteger operator-(const BigInteger &) const;
-    BigInteger operator*(const BigInteger &v) const;
+    BigInteger operator*(const BigInteger &) const;
 
     bool operator<(const BigInteger &) const;
     bool operator>(const BigInteger &) const;
@@ -47,11 +47,17 @@ void BigInteger::trim() {
 
 BigInteger::BigInteger(const int v) {
     sign = 1;
+    int val = v;
     if (v < 0) {
         sign = -1;
-        z.push_back(-v);
-    } else {
-        z.push_back(v);
+        val = -val;
+    }
+    if (val == 0) {
+        z.push_back(0);
+    }
+    while (val) {
+        z.push_back(val % base);
+        val /= base;
     }
 }
 
@@ -62,6 +68,9 @@ BigInteger::BigInteger(const long long v) {
         sign = -1;
         val = -val;
     } 
+    if (val == 0) {
+        z.push_back(0);
+    }
     while (val) {
         z.push_back(val % base);
         val /= base;
@@ -132,13 +141,12 @@ BigInteger BigInteger::operator-(const BigInteger &v) const {
 
 BigInteger BigInteger::operator*(const BigInteger &v) const {
     BigInteger res = *this;
-    res.trim();
     res.z.resize(this->z.size() + v.z.size());
     std::fill(res.z.begin(), res.z.end(), 0);
     for (int i = 0; i < z.size(); i++) {
         for (int j = 0, carry = 0; j < v.z.size() || carry > 0; j++) {
-            long long s = res.z[i + j] + carry + (long long)z[i] * ((j < v.z.size()) ? v.z[j] : 0);
-            res.z[i+j] = s % base;
+            long long s = (long long) res.z[i + j] + (long long) carry + (long long) z[i] * ((j < v.z.size()) ? v.z[j] : 0);
+            res.z[i + j] = s % base;
             carry = s / base;
         }
     }

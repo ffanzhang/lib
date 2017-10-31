@@ -130,6 +130,25 @@ void testBigInteger() {
     BigInteger i = BigInteger("3");
     BigInteger j = h - i;
     assert(j == -2);
+    BigInteger k = BigInteger(1000000001);
+    assert(k == 1000000001);
+    assert(k.z.size() == 2);
+    BigInteger l = BigInteger(-1000000001);
+    assert(l == -1000000001);
+    assert(l.z.size() == 2);
+    a = j;
+    assert(a == -2);
+
+    // deep copy test
+    BigInteger m(1);
+    assert(m == 1);
+    BigInteger n(2);
+    assert(n == 2);
+    m = n;
+    assert(m == 2);
+    n = 12;
+    assert(m == 2);
+    assert(n == 12);
 }
 
 int main() {
