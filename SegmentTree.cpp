@@ -35,6 +35,67 @@ struct MySum : public Combine<E> {
         return left + right;
     }
 };
+
+struct Element {
+    // length, leftValue, leftFrequency, rightValue, rightFrequency,
+    // middleValue, MiddleFrequency;
+    int l, lv, lf, rv, rf, mv, mf;
+    Element(int l = 0, int lv = 0, int lf = 0, int rv = 0, int rf = 0, int mv = 0, int mf = 0) : l(l), lv(lv), lf(lf), rv(rv), rf(rf), mv(mv), mf(mf) {}
+};
+
+// computes the frequency from a list of sorted elements
+// UVA 11235
+struct Frequency : public Combine<Element> {
+    Element identity() const {
+        return Element(0, 0, 0, 0, 0, 0, 0);
+    }
+    Element combine(const Element &left, const Element &right) {
+        if (left.l == 0) {
+            return right;
+        }
+        if (right.l == 0) {
+            return left;
+        }
+        // combined length
+        int l = left.l + right.l;
+        int lv = left.lv;
+        int rv = right.rv;
+
+        int lf = left.lf;
+        // case where left value fills left chunk
+        if (left.lf == left.l && right.lv == left.lv) {
+            lf = left.l + right.lf;
+        }
+        int rf = right.rf;
+        // case where right value fills right chunk
+        if (right.l == right.rf && right.rv == left.rv) {
+            rf = right.l + left.rf;
+        }
+        int newf = 0;
+        int newv = 0;
+        // concatenates middle value
+        if (left.rv == right.lv) {
+            newf = left.rf + right.lf;
+            newv = left.rv;
+        }
+        int mf = left.mf;
+        int mv = left.mv;
+        // determine whether to keep left middle value or
+        // right middle value
+        if (right.mf > left.mf) {
+            mf = right.mf;
+            mv = right.mv;
+        }
+        // determine whether to keep new concatenated middle value
+        // or one of the old middle values
+        if (newf > mf) {
+            mf = newf;
+            mv = newv;
+        }
+        return Element(l, lv, lf, rv, rf, mv, mf);
+    }
+};
+
 template <class I, class E>
 class SegmentTree {
     std::vector<E> tree;
@@ -124,8 +185,8 @@ public:
         E resl = combine->identity();
         E resr = combine->identity();
         for (l += n, r += n; l < r; l >>= 1, r >>= 1) {
-            if (l&1) resl = combine->combine(tree[l++], resl);
-            if (r&1) resr = combine->combine(resr, tree[--r]);
+            if (l&1) resl = combine->combine(resl, tree[l++]);
+            if (r&1) resr = combine->combine(tree[--r], resr);
         }
         return combine->combine(resl, resr);
     }
