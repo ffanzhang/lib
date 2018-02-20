@@ -2,6 +2,7 @@
 #include "Union.cpp"
 #include "Flow.cpp"
 #include "ShortestPath.cpp"
+#include "BigInteger.cpp"
 #include <cstdlib>
 #include <iostream>
 #include <cstdint>
@@ -99,6 +100,7 @@ void testFlow() {
     flo.add_edge(4, 2, 3);
     assert(flo.max_flow(0, 2) == 9);
 }
+
 void testShortestPath() {
     Dijkstra<int, int> d(10);
     d.add_edge(1, 2, 5);
@@ -110,10 +112,50 @@ void testShortestPath() {
     assert(d.shortest_path(1, 3) == 5);
 }
 
+void testBigInteger() {
+    BigInteger a(11);
+    BigInteger b(11);
+    assert(a + b == BigInteger(22));
+    assert(a * b == BigInteger(121));
+    assert(a - b == BigInteger(0));
+    BigInteger c("12312312312312313123123");
+    BigInteger d("78787873241614257823");
+    BigInteger e = c * d;
+    BigInteger f = c - d;
+    BigInteger g = d - c;
+    assert(e == BigInteger("970060901773629064105172807606746864941229"));
+    assert(f == BigInteger("12233524439070698865300"));
+    assert(g == BigInteger("-12233524439070698865300"));
+    BigInteger h = BigInteger("1");
+    BigInteger i = BigInteger("3");
+    BigInteger j = h - i;
+    assert(j == -2);
+    BigInteger k = BigInteger(1000000001);
+    assert(k == 1000000001);
+    assert(k.z.size() == 2);
+    BigInteger l = BigInteger(-1000000001);
+    assert(l == -1000000001);
+    assert(l.z.size() == 2);
+    a = j;
+    assert(a == -2);
+
+    // deep copy test
+    BigInteger m(1);
+    assert(m == 1);
+    BigInteger n(2);
+    assert(n == 2);
+    m = n;
+    assert(m == 2);
+    n = 12;
+    assert(m == 2);
+    assert(n == 12);
+}
+
 int main() {
     testUnion();
     testSegmentTree();
     testFlow();
     testShortestPath();
+    testBigInteger();
     return 0;
 }

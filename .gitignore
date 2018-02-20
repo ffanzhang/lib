@@ -3,3 +3,4 @@ in.txt
 main.cc
 test
 test.o
+test*
