@@ -96,8 +96,46 @@ struct Frequency : public Combine<Element> {
     }
 };
 
+// UVA 11297
 template <class I, class E>
 class SegmentTree {
+    std::vector<E> tree;
+    Combine<E> *combine;
+    I n;
+public:
+    SegmentTree() {}
+    SegmentTree(const std::vector<E> &elements, Combine<E> *combine) {
+        n = elements.size();
+        tree.resize(2 * n);
+        this->combine = combine;
+        for (I i = n; i < 2 * n; i++) {
+            tree[i] = elements[i - n];
+        }
+        for (I i = n - 1; i > 0; i--) {
+            tree[i] = combine->combine(tree[i<<1], tree[(i<<1)|1]);
+        }
+    }
+    ~SegmentTree() {
+        tree.clear();
+    }
+    void modify(I i, const E &value) {
+        for (tree[i += n] = value; i >>= 1;) {
+            tree[i] = combine->combine(tree[i<<1], tree[(i<<1)|1]);
+        }
+    }
+    E query(I l, I r) {
+        E resl = combine->identity();
+        E resr = combine->identity();
+        for (l += n, r += n; l < r; l >>= 1, r >>= 1) {
+            if (l&1) resl = combine->combine(resl, tree[l++]);
+            if (r&1) resr = combine->combine(tree[--r], resr);
+        }
+        return combine->combine(resl, resr);
+    }
+};
+
+template <class I, class E>
+class SegmentTreeLazy {
     std::vector<E> tree;
     E *delay;
     Combine<E> *combine;
