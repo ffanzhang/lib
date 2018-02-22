@@ -38,7 +38,7 @@ void testSegmentTree() {
     testSegmentTreeHelper(elements1, 100);
     testSegmentTreeHelper(elements2, 100);
 
-    SegmentTree<int, long long> st1(20);
+    SegmentTreeLazy<int, long long> st1(20);
 
     st1.modify(0, 10, 1);
     st1.modify(3, 6, 1);
