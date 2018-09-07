@@ -4,37 +4,37 @@
 #include <limits>
 
 template <class E>
-struct Combine {
+struct Merger {
     virtual E identity() const = 0; 
-    virtual E combine(const E &left, const E &right) = 0;
+    virtual E merge(const E& left, const E& right) const = 0;
 };
 
 template <class E>
-struct MyMin : public Combine<E> {
+struct MyMin : public Merger<E> {
     E identity () const {
         return std::numeric_limits<E>::max();
     }
-    E combine(const E &left, const E &right) {
+    E merge(const E& left, const E& right) const {
         return std::min(left, right);
     }
 };
 
 template <class E>
-struct MyMax : public Combine<E> {
+struct MyMax : public Merger<E> {
     E identity () const {
         return std::numeric_limits<E>::lowest();
     }
-    E combine(const E &left, const E &right) {
+    E merge(const E& left, const E& right) const {
         return std::max(left, right);
     }
 };
 
 template <class E>
-struct MySum : public Combine<E> {
+struct MySum : public Merger<E> {
     E identity () const {
         return (E) 0;
     }
-    E combine(const E &left, const E &right) {
+    E merge(const E& left, const E& right) const {
         return left + right;
     }
 };
@@ -48,18 +48,18 @@ struct Element {
 
 // computes the frequency from a list of sorted elements
 // UVA 11235
-struct Frequency : public Combine<Element> {
+struct Frequency : public Merger<Element> {
     Element identity() const {
         return Element(0, 0, 0, 0, 0, 0, 0);
     }
-    Element combine(const Element &left, const Element &right) {
+    Element merge(const Element& left, const Element& right) const {
         if (left.l == 0) {
             return right;
         }
         if (right.l == 0) {
             return left;
         }
-        // combined length
+        // mergerd length
         int l = left.l + right.l;
         int lv = left.lv;
         int rv = right.rv;
@@ -103,38 +103,38 @@ struct Frequency : public Combine<Element> {
 template <class I, class E>
 class SegmentTree {
     std::vector<E> tree;
-    Combine<E> *combine;
+    const Merger<E>* merger;
     I n;
 public:
     SegmentTree() {}
-    SegmentTree(const std::vector<E> &elements, Combine<E> *combine) {
+    SegmentTree(const std::vector<E>& elements, const Merger<E>& merger) {
         n = elements.size();
         tree.resize(2 * n);
-        this->combine = combine;
+        this->merger = &merger;
         for (I i = n; i < 2 * n; i++) {
             tree[i] = elements[i - n];
         }
         for (I i = n - 1; i > 0; i--) {
-            tree[i] = combine->combine(tree[i<<1], tree[(i<<1)|1]);
+            tree[i] = this->merger->merge(tree[i<<1], tree[(i<<1)|1]);
         }
     }
     ~SegmentTree() {
         tree.clear();
     }
-    void modify(I i, const E &value) {
+    void modify(I i, const E& value) {
         for (tree[i += n] = value; i >>= 1;) {
-            tree[i] = combine->combine(tree[i<<1], tree[(i<<1)|1]);
+            tree[i] = merger->merge(tree[i<<1], tree[(i<<1)|1]);
         }
     }
     // left inclusive, right exclusive
     E query(I l, I r) {
-        E resl = combine->identity();
-        E resr = combine->identity();
+        E resl = merger->identity();
+        E resr = merger->identity();
         for (l += n, r += n; l < r; l >>= 1, r >>= 1) {
-            if (l&1) resl = combine->combine(resl, tree[l++]);
-            if (r&1) resr = combine->combine(tree[--r], resr);
+            if (l&1) resl = merger->merge(resl, tree[l++]);
+            if (r&1) resr = merger->merge(tree[--r], resr);
         }
-        return combine->combine(resl, resr);
+        return merger->merge(resl, resr);
     }
 };
 
@@ -143,8 +143,8 @@ public:
 template <class I, class E>
 class SegmentTreeLazy {
     std::vector<E> tree;
-    E *pending;
-    Combine<E> *combine;
+    E* pending;
+    const Merger<E>* merger;
     I height;
     I n;
 public:
@@ -157,10 +157,9 @@ public:
         }
         pending = new E [n]();
         tree.resize(2 * n);
-        this->combine = new MySum<E>();
+        this->merger = new MySum<E>();
     }
-
-    SegmentTreeLazy(const std::vector<E> &elements, Combine<E> *combine) {
+    SegmentTreeLazy(const std::vector<E>& elements, const Merger<E>& merger) {
         n = elements.size();
         I np = n;
         height = 0;
@@ -170,28 +169,25 @@ public:
         }
         pending = new E [n]();
         tree.resize(2 * n);
-        this->combine = combine;
+        this->merger = &merger;
         for (I i = n; i < 2 * n; i++) {
             tree[i] = elements[i - n];
         }
         for (I i = n - 1; i > 0; i--) {
-            tree[i] = combine->combine(tree[i<<1], tree[(i<<1)|1]);
+            tree[i] = merger->merge(tree[i<<1], tree[(i<<1)|1]);
         }
     }
-
     ~SegmentTreeLazy() {
         delete pending;
         tree.clear();
     }
-
     // this version specifies change of value
-    void modify_node(I i, const E &value, I length) {
+    void modify_node(I i, const E& value, I length) {
         tree[i] += value * length;
         if (i < n)  {
             pending[i] += value;
         }
     }
-
     // propagate pending changes
     void push(I l, I r) {
         I hp = height;
@@ -206,19 +202,17 @@ public:
             }
         }
     }
-
     void pull(I l, I r) {
         for (l += n, r += n - 1; l > 1;) {
             l >>= 1; r >>= 1;
             for (I i = r; i >= l; i--) {
                 if (pending[i] == 0) {
-                    tree[i] = combine->combine(tree[i<<1], tree[(i<<1)|1]);
+                    tree[i] = merger->merge(tree[i<<1], tree[(i<<1)|1]);
                 } 
             }
         }
     }
-
-    void modify(I l, I r, const E &value) {
+    void modify(I l, I r, const E& value) {
         if (value == 0) return;
         push(l, l + 1);
         push(r - 1, r);
@@ -230,16 +224,15 @@ public:
         pull(tl, tl + 1);
         pull(tr - 1, tr);
     }
-
     E query(I l, I r) {
         push(l, l + 1);
         push(r - 1, r);
-        E resl = combine->identity();
-        E resr = combine->identity();
+        E resl = merger->identity();
+        E resr = merger->identity();
         for (l += n, r += n; l < r; l >>= 1, r >>= 1) {
-            if (l&1) resl = combine->combine(resl, tree[l++]);
-            if (r&1) resr = combine->combine(tree[--r], resr);
+            if (l&1) resl = merger->merge(resl, tree[l++]);
+            if (r&1) resr = merger->merge(tree[--r], resr);
         }
-        return combine->combine(resl, resr);
+        return merger->merge(resl, resr);
     }
 };

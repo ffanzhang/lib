@@ -10,18 +10,16 @@
 using namespace std;
 
 template <class I, class E>
-void testSegmentTreeHelper(vector<E> &elements, I n) {
+void testSegmentTreeHelper(vector<E>& elements, I n) {
     for (I i = 0; i < n; i++) {
         elements.push_back(i + 1);
     }
-    Combine<E> *a = new MyMax<E>();
-    SegmentTree<I, E> t1(elements, a);
+    SegmentTree<I, E> t1(elements, MyMax<E>());
     assert(t1.query(0, 100) == 100);
     assert(t1.query(0, 50) == 50);
     assert(t1.query(50, 100) == 100);
 
-    Combine<E> *b = new MySum<E>();
-    SegmentTree<I, E> t2(elements, b);
+    SegmentTree<I, E> t2(elements, MySum<E>());
 
     assert(t2.query(0, 100) == 5050);
     assert(t2.query(0, 50) == (50 * 51) / 2);
