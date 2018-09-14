@@ -4,3 +4,5 @@ main.cc
 test
 test.o
 test*
+*.cc
+*.in
