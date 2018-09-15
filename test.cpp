@@ -3,6 +3,7 @@
 #include "Flow.cpp"
 #include "ShortestPath.cpp"
 #include "BigInteger.cpp"
+#include "IO.cpp"
 #include <cstdlib>
 #include <iostream>
 #include <cstdint>
@@ -149,11 +150,58 @@ void testBigInteger() {
     assert(n == 12);
 }
 
+void testIO() {
+    freopen("IO.txt", "r", stdin);
+    freopen("IOo.txt", "w+", stdout);
+    vector<int> v(8);
+    for (int i = 0; i < 8; i++) {
+        io::read_int(v[i]);
+    }
+    assert(v[0] == 1);
+    assert(v[1] == 2);
+    assert(v[2] == 3);
+    assert(v[3] == 5);
+    assert(v[4] == 6);
+    assert(v[5] == 123);
+    assert(v[6] == -2);
+    assert(v[7] == -8);
+    vector<string> s(5);
+    for (int i = 0; i < 5; i++) {
+        io::read_string(s[i]);
+    }
+    assert(s[0] == "hello");
+    assert(s[1] == "world");
+    assert(s[2] == "i'm");
+    assert(s[3] == "reading");
+    assert(s[4] == "strings");
+    vector<double> d(4);
+    for (int i = 0; i < 4; i++) {
+        io::read_double(d[i]);
+    }
+    assert(abs(d[0] - 3.14) < 1e-9);
+    assert(abs(d[1] - 2.78) < 1e-9);
+    assert(abs(d[2] - 1.222222) < 1e-9);
+    assert(abs(d[3] - -2.87) < 1e-9);
+
+    io::write_string(s[0]);
+    io::write_char(' ');
+    io::write_string(s[1]);
+    io::write_char(' ');
+    io::write_int(2018);
+    io::write_char(' ');
+    io::write_int(-2018);
+    io::write_char(' ');
+    io::write_int(314332424);
+    io::write_char(' ');
+    io::write_double(34.334, 10);
+}
+
 int main() {
     testUnion();
     testSegmentTree();
     testFlow();
     testShortestPath();
     testBigInteger();
+    testIO();
     return 0;
 }
