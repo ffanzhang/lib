@@ -198,7 +198,7 @@ void testIO() {
 }
 
 void testSudoku() {
-  freopen("sudoku_test.in", "r", stdin);
+  freopen("Sudoku.txt", "r", stdin);
   char board[81];
   string line;
   for (int j = 0; j < 9; j++) {
