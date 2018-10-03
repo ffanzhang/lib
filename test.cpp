@@ -197,17 +197,7 @@ void testIO() {
   io::write_double(34.334, 10);
 }
 
-void testSudoku() {
-  freopen("Sudoku.txt", "r", stdin);
-  char board[81];
-  string line;
-  for (int j = 0; j < 9; j++) {
-    cin >> line;
-    for (int i = 0; i < 9; i++) {
-      board[j * 9 + i] = line[i] - '0';
-    }
-  }
-  char *soln = sudoku::solve(board);
+void checkboard(char *soln) {
   assert(soln != nullptr);
   for (int j = 0; j < 9; j++) {
     int sum = 0;
@@ -234,6 +224,20 @@ void testSudoku() {
     }
     assert(sum == 45);
   }
+}
+
+void testSudoku() {
+  freopen("Sudoku.txt", "r", stdin);
+  char board[81];
+  string line;
+  for (int j = 0; j < 9; j++) {
+    cin >> line;
+    for (int i = 0; i < 9; i++) {
+      board[j * 9 + i] = line[i] - '0';
+    }
+  }
+  char *soln = sudoku::solve(board);
+  checkboard(soln);
 }
 
 int main() {
