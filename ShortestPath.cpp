@@ -1,6 +1,6 @@
 #include <iostream>
-#include <map>
 #include <queue>
+#include <unordered_map>
 #include <vector>
 
 template <class I, class E>
@@ -32,11 +32,17 @@ struct ShortestPath {
 template <class I, class E>
 struct Dijkstra : public ShortestPath<I, E> {
   I n;
-  const static E INF = (E)0x3f3f3f3f3f3f3f3f;
-  std::vector<std::map<I, E>> graph;
-  std::vector<bool> visited;
-  std::vector<E> costs;
-  Dijkstra(I n) : ShortestPath<I, E>(n), graph(n), visited(n), costs(n) {}
+  std::vector<std::unordered_map<I, E>> graph;
+  bool *visited;
+  E *costs;
+  Dijkstra(I n) : n(n), ShortestPath<I, E>(n), graph(n) {
+    visited = new bool[n]();
+    costs = new E[n]();
+  }
+  ~Dijkstra() {
+    delete visited;
+    delete costs;
+  }
   void add_edge(I u, I v, E cost) {
     if (graph[u].find(v) == graph[u].end()) {
       graph[u][v] = cost;
@@ -45,8 +51,8 @@ struct Dijkstra : public ShortestPath<I, E> {
     }
   }
   E shortest_path(I u, I v) {
-    std::fill(visited.begin(), visited.end(), false);
-    std::fill(costs.begin(), costs.end(), (E)INF);
+    memset(visited, 0, sizeof(bool) * n);
+    memset(costs, 0x3f, sizeof(E) * n);
     std::priority_queue<Distance<I, E>> pq;
     pq.push(Distance<I, E>(u, 0));
     while (!pq.empty()) {
