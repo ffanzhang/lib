@@ -17,7 +17,7 @@ void print_board(char board[81]) {
 int row[9];
 int col[9];
 int reg[9];
-char num[513];
+unordered_map<int, int> num;
 int candidate_mask = ((1 << 10) - 1) - 1;
 
 bool dfs(int i, char board[81]) {
@@ -33,8 +33,7 @@ bool dfs(int i, char board[81]) {
                      candidate_mask;
     while (candidates) {
       int bit = candidates & (~(candidates - 1));
-      int cnum = num[bit];
-      board[i] = cnum;
+      board[i] = num[bit];
       row[row_index] |= bit;
       col[col_index] |= bit;
       reg[reg_index] |= bit;

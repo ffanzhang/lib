@@ -3,5 +3,8 @@ in.txt
 main.cc
 test
 test.o
+test*
 *.cc
 *.in
+IOo.txt
+BigIntegero.txt

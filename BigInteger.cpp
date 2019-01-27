@@ -14,32 +14,57 @@ class BigInteger {
   ~BigInteger() { z.clear(); }
   BigInteger(const int);
   BigInteger(const long long);
-  BigInteger(const std::string &);
-  BigInteger(const BigInteger &);
+  BigInteger(const std::string&);
+  BigInteger(const BigInteger&);
 
   void trim();
+  void print();
 
   BigInteger abs() const;
   BigInteger operator-() const;
-  BigInteger &operator=(const BigInteger &);
-  BigInteger operator+(const BigInteger &) const;
-  BigInteger operator-(const BigInteger &) const;
-  BigInteger operator*(const BigInteger &)const;
+  BigInteger& operator=(const BigInteger&);
+  BigInteger operator+(const BigInteger&) const;
+  BigInteger operator-(const BigInteger&) const;
+  BigInteger operator*(const BigInteger&)const;
+  BigInteger operator/(const BigInteger&) const;
 
-  bool operator<(const BigInteger &) const;
-  bool operator>(const BigInteger &) const;
-  bool operator<=(const BigInteger &) const;
-  bool operator>=(const BigInteger &) const;
-  bool operator==(const BigInteger &) const;
-  bool operator!=(const BigInteger &) const;
+  // prefix increment
+  BigInteger& operator++();
+  // postfix increment
+  BigInteger operator++(int);
+  // prefix decrement
+  BigInteger& operator--();
+  // postfix decrement
+  BigInteger operator--(int);
 
-  friend std::istream &operator>>(std::istream &, BigInteger &);
-  friend std::ostream &operator<<(std::ostream &, BigInteger &);
+  bool operator<(const BigInteger&) const;
+  bool operator>(const BigInteger&) const;
+  bool operator<=(const BigInteger&) const;
+  bool operator>=(const BigInteger&) const;
+  bool operator==(const BigInteger&) const;
+  bool operator!=(const BigInteger&) const;
+
+  bool operator<(const long long) const;
+  bool operator>(const long long) const;
+  bool operator<=(const long long) const;
+  bool operator>=(const long long) const;
+  bool operator==(const long long) const;
+  bool operator!=(const long long) const;
+
+  friend std::istream& operator>>(std::istream&, BigInteger&);
+  friend std::ostream& operator<<(std::ostream&, BigInteger);
 };
 
 void BigInteger::trim() {
   while (z.size() > 1 && z.back() == 0) {
     z.pop_back();
+  }
+}
+void BigInteger::print() {
+  if (sign == -1) std::cout << '-';
+  std::cout << (z.empty() ? 0 : z.back());
+  for (int i = static_cast<int>(z.size()) - 2; i >= 0; i--) {
+    std::cout << std::setw(base_digits) << std::setfill('0') << z[i];
   }
 }
 
@@ -57,6 +82,7 @@ BigInteger::BigInteger(const int v) {
     z.push_back(val % base);
     val /= base;
   }
+  trim();
 }
 
 BigInteger::BigInteger(const long long v) {
@@ -73,12 +99,14 @@ BigInteger::BigInteger(const long long v) {
     z.push_back(val % base);
     val /= base;
   }
+  trim();
 }
 
-BigInteger::BigInteger(const std::string &s) {
+BigInteger::BigInteger(const std::string& s) {
   sign = 1;
   int pos = 0;
-  for (; pos < (int)s.size() && (s[pos] == '-' || s[pos] == '+'); pos++) {
+  for (; pos < static_cast<int>(s.size()) && (s[pos] == '-' || s[pos] == '+');
+       pos++) {
     if (s[pos] == '-') sign = -sign;
   }
   for (int i = s.size() - 1; i >= pos; i -= base_digits) {
@@ -89,20 +117,20 @@ BigInteger::BigInteger(const std::string &s) {
   }
 }
 
-BigInteger::BigInteger(const BigInteger &v) {
+BigInteger::BigInteger(const BigInteger& v) {
   sign = v.sign;
   z.clear();
   std::copy(v.z.begin(), v.z.end(), std::back_inserter(z));
 }
 
-BigInteger &BigInteger::operator=(const BigInteger &v) {
+BigInteger& BigInteger::operator=(const BigInteger& v) {
   sign = v.sign;
   z.clear();
   std::copy(v.z.begin(), v.z.end(), std::back_inserter(z));
   return *this;
 }
 
-BigInteger BigInteger::operator+(const BigInteger &v) const {
+BigInteger BigInteger::operator+(const BigInteger& v) const {
   if (sign == v.sign) {
     BigInteger res = v;
     for (int i = 0, carry = 0; i < std::max(z.size(), v.z.size()) || carry;
@@ -112,12 +140,13 @@ BigInteger BigInteger::operator+(const BigInteger &v) const {
       carry = res.z[i] >= base;
       if (carry) res.z[i] -= base;
     }
+    res.trim();
     return res;
   }
   return *this - (-v);
 }
 
-BigInteger BigInteger::operator-(const BigInteger &v) const {
+BigInteger BigInteger::operator-(const BigInteger& v) const {
   if (sign == v.sign) {
     if (abs() >= v.abs()) {
       BigInteger res = *this;
@@ -134,7 +163,7 @@ BigInteger BigInteger::operator-(const BigInteger &v) const {
   return *this + (-v);
 }
 
-BigInteger BigInteger::operator*(const BigInteger &v) const {
+BigInteger BigInteger::operator*(const BigInteger& v) const {
   BigInteger res = *this;
   res.z.resize(this->z.size() + v.z.size());
   std::fill(res.z.begin(), res.z.end(), 0);
@@ -150,9 +179,58 @@ BigInteger BigInteger::operator*(const BigInteger &v) const {
   return res;
 }
 
+BigInteger BigInteger::operator/(const BigInteger& v) const {
+  if (v == 0) {
+    throw std::overflow_error("BigInteger Division by Zero.");
+  }
+  BigInteger res, cur;
+  for (int i = static_cast<int>(this->z.size()) - 1; i >= 0; i--) {
+    cur.z.insert(cur.z.begin(), this->z[i]);
+    int x = 0, lo = 0, hi = base + 1;
+    while (lo < hi) {
+      int mid = lo + (hi - lo) / 2;
+      if (v * BigInteger(mid) < cur) {
+        lo = mid + 1;
+      } else {
+        hi = mid;
+      }
+    }
+    cur = cur - BigInteger(lo - 1) * v;
+    res.z.insert(res.z.begin(), lo - 1);
+  }
+  res.trim();
+  return res;
+}
+
 BigInteger BigInteger::operator-() const {
   BigInteger res = *this;
   res.sign = -sign;
+  return res;
+}
+
+// prefix increment
+BigInteger& BigInteger::operator++() {
+  *this = *this + BigInteger(1);
+  return *this;
+}
+
+// postfix increment
+BigInteger BigInteger::operator++(int post) {
+  BigInteger res = *this;
+  ++*this;
+  return res;
+}
+
+// prefix decrement
+BigInteger& BigInteger::operator--() {
+  *this = *this + BigInteger(-1);
+  return *this;
+}
+
+// postfix decrement
+BigInteger BigInteger::operator--(int post) {
+  BigInteger res = *this;
+  --*this;
   return res;
 }
 
@@ -162,7 +240,7 @@ BigInteger BigInteger::abs() const {
   return res;
 }
 
-bool BigInteger::operator<(const BigInteger &v) const {
+bool BigInteger::operator<(const BigInteger& v) const {
   if (sign != v.sign) return sign < v.sign;
   if (z.size() != v.z.size()) return z.size() * sign < v.z.size() * v.sign;
   for (int i = z.size() - 1; i >= 0; i--)
@@ -170,31 +248,63 @@ bool BigInteger::operator<(const BigInteger &v) const {
   return false;
 }
 
-bool BigInteger::operator>(const BigInteger &v) const { return v < *this; }
+bool BigInteger::operator>(const BigInteger& v) const { return v < *this; }
 
-bool BigInteger::operator<=(const BigInteger &v) const { return !(v < *this); }
+bool BigInteger::operator<=(const BigInteger& v) const { return !(v < *this); }
 
-bool BigInteger::operator>=(const BigInteger &v) const { return !(*this < v); }
+bool BigInteger::operator>=(const BigInteger& v) const { return !(*this < v); }
 
-bool BigInteger::operator==(const BigInteger &v) const {
+bool BigInteger::operator==(const BigInteger& v) const {
   return !(*this < v) && !(v < *this);
 }
 
-bool BigInteger::operator!=(const BigInteger &v) const {
+bool BigInteger::operator!=(const BigInteger& v) const {
   return *this < v || v < *this;
 }
 
-std::istream &operator>>(std::istream &stream, BigInteger &v) {
+bool BigInteger::operator<(const long long v) const {
+  return *this < BigInteger(v);
+}
+
+bool BigInteger::operator>(const long long v) const {
+  return BigInteger(v) < *this;
+}
+
+bool BigInteger::operator<=(const long long v) const {
+  return !(BigInteger(v) < *this);
+}
+
+bool BigInteger::operator>=(const long long v) const {
+  return !(*this < BigInteger(v));
+}
+
+bool BigInteger::operator==(const long long v) const {
+  return *this == BigInteger(v);
+}
+
+bool BigInteger::operator!=(const long long v) const {
+  return *this != BigInteger(v);
+}
+
+std::istream& operator>>(std::istream& stream, BigInteger& v) {
   std::string s;
   stream >> s;
   v = BigInteger(s);
   return stream;
 }
 
-std::ostream &operator<<(std::ostream &stream, BigInteger &v) {
+std::ostream& operator<<(std::ostream& stream, BigInteger& v) {
   if (v.sign == -1) stream << '-';
   stream << (v.z.empty() ? 0 : v.z.back());
-  for (int i = (int)v.z.size() - 2; i >= 0; --i)
+  for (int i = static_cast<int>(v.z.size()) - 2; i >= 0; --i)
+    stream << std::setw(v.base_digits) << std::setfill('0') << v.z[i];
+  return stream;
+}
+
+std::ostream& operator<<(std::ostream& stream, BigInteger v) {
+  if (v.sign == -1) stream << '-';
+  stream << (v.z.empty() ? 0 : v.z.back());
+  for (int i = static_cast<int>(v.z.size()) - 2; i >= 0; --i)
     stream << std::setw(v.base_digits) << std::setfill('0') << v.z[i];
   return stream;
 }
