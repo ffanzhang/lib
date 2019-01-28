@@ -348,7 +348,7 @@ std::istream& operator>>(std::istream& stream, BigInteger& v) {
   return stream;
 }
 
-std::ostream& operator<<(std::ostream& stream, BigInteger& v) {
+std::ostream& operator<<(std::ostream& stream, BigInteger v) {
   if (v.sign == -1) stream << '-';
   stream << (v.z.empty() ? 0 : v.z.back());
   for (int i = static_cast<int>(v.z.size()) - 2; i >= 0; --i)
@@ -356,10 +356,9 @@ std::ostream& operator<<(std::ostream& stream, BigInteger& v) {
   return stream;
 }
 
-std::ostream& operator<<(std::ostream& stream, BigInteger v) {
-  if (v.sign == -1) stream << '-';
-  stream << (v.z.empty() ? 0 : v.z.back());
-  for (int i = static_cast<int>(v.z.size()) - 2; i >= 0; --i)
-    stream << std::setw(v.base_digits) << std::setfill('0') << v.z[i];
-  return stream;
+BigInteger pow(const BigInteger& a, const BigInteger& b) {
+  if (b == BigInteger(0)) return BigInteger(1);
+  BigInteger tmp = pow(a, b / BigInteger(2));
+  if (b.z[0] % 2 == 0) return tmp * tmp;
+  return tmp * tmp * a;
 }
