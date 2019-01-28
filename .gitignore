@@ -5,3 +5,7 @@ test
 test.o
 *.cc
 *.in
+
+tests/a.out
+tests/test
+tests/test.o
