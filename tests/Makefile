@@ -4,7 +4,7 @@ CFLAGS = -std=c++11 -g -c ${INCLUDE}
 OBJFILES = test.o
 
 test: $(OBJFILES) 
-	clang-format -i -style=Google ./*.cpp test.cpp
+	clang-format -i -style=Google ../*.cpp test.cpp
 	$(CC) -o test $(OBJFILES) 
 	time ./test
 

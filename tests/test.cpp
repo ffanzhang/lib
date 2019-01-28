@@ -112,12 +112,26 @@ void testShortestPath() {
   assert(d.shortest_path(1, 3) == 5);
 }
 
+std::string exec(const char *cmd) {
+  std::array<char, 128> buffer;
+  std::string result;
+  std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+  if (!pipe) {
+    throw std::runtime_error("popen() failed!");
+  }
+  while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+    result += buffer.data();
+  }
+  return result;
+}
+
 void testBigInteger() {
   BigInteger a(11);
   BigInteger b(11);
   assert(a + b == BigInteger(22));
   assert(a * b == BigInteger(121));
   assert(a - b == BigInteger(0));
+
   BigInteger c("12312312312312313123123");
   BigInteger d("78787873241614257823");
   BigInteger e = c * d;
@@ -132,12 +146,17 @@ void testBigInteger() {
   assert(j == -2);
   BigInteger k = BigInteger(1000000001);
   assert(k == 1000000001);
-  assert(k.z.size() == 2);
   BigInteger l = BigInteger(-1000000001);
   assert(l == -1000000001);
-  assert(l.z.size() == 2);
   a = j;
   assert(a == -2);
+
+  assert(g < f);
+  assert(f < e);
+  assert(-e < -f);
+  assert(l < f);
+
+  assert(BigInteger(-1) - BigInteger(-1) == BigInteger(0));
 
   BigInteger z = BigInteger(100);
   assert(++z == 101);
@@ -149,15 +168,54 @@ void testBigInteger() {
   assert(z == 101);
   assert(z++ == 101);
   assert(z == 102);
-
   // do 10000 random divisions
   for (int i = 0; i < 10000; i++) {
-    int x = rand();
-    int y = rand() + 1;
-    assert((BigInteger(x) / BigInteger(y)) == x / y);
+    long long x = rand();
+    long long y = rand() + 1;
+    BigInteger xy = BigInteger(x) / BigInteger(y);
+    assert(xy == x / y);
   }
-  freopen("BigInteger.txt", "r", stdin);
-  freopen("BigIntegero.txt", "w+", stdout);
+  ifstream fin("BigInteger.txt");
+  vector<BigInteger> bints;
+  vector<BigInteger> bres;
+  string s;
+  while (fin >> s) {
+    bints.push_back(BigInteger(s));
+  }
+  for (auto &a : bints) {
+    for (auto &b : bints) {
+      bres.push_back(a + b);
+      bres.push_back(a - b);
+      bres.push_back(a * b);
+      bres.push_back(a / b);
+    }
+  }
+
+  std::string pyres = exec("python test_BigInteger.py");
+  stringstream outputs;
+  string result;
+  vector<BigInteger> results;
+  outputs << pyres;
+  while (outputs >> result) {
+    results.push_back(BigInteger(result));
+  }
+  for (int i = 0; i < bres.size(); i++) {
+    if (bres[i] != results[i]) {
+      cout << "not same: ";
+      cout << '\n';
+      bres[i].print();
+      cout << "\n";
+      cout << "s:" << bres[i].sign;
+      cout << "\n";
+      cout << " ";
+      results[i].print();
+      cout << "\n";
+      cout << "s:" << results[i].sign;
+      cout << "\n";
+      break;
+    }
+    assert(bres[i] == results[i]);
+  }
 
   // test division by 0;
   try {
@@ -278,5 +336,6 @@ int main() {
   testBigInteger();
   testIO();
   testSudoku();
+  cout << "wlalalal" << endl;
   return 0;
 }
