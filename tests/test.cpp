@@ -187,7 +187,7 @@ void testBigInteger() {
       bres.push_back(a + b);
       bres.push_back(a - b);
       bres.push_back(a * b);
-      bres.push_back(a / b);
+      bres.push_back(a.abs() / b.abs());
     }
   }
 
@@ -200,20 +200,6 @@ void testBigInteger() {
     results.push_back(BigInteger(result));
   }
   for (int i = 0; i < bres.size(); i++) {
-    if (bres[i] != results[i]) {
-      cout << "not same: ";
-      cout << '\n';
-      bres[i].print();
-      cout << "\n";
-      cout << "s:" << bres[i].sign;
-      cout << "\n";
-      cout << " ";
-      results[i].print();
-      cout << "\n";
-      cout << "s:" << results[i].sign;
-      cout << "\n";
-      break;
-    }
     assert(bres[i] == results[i]);
   }
 

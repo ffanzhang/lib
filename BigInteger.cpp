@@ -8,6 +8,7 @@ class BigInteger {
  public:
   const long long base = 1000000000;
   const int base_digits = 9;
+
   std::vector<int> z;
   int sign;
   BigInteger() : sign(1), z(1, 0){};
@@ -180,6 +181,7 @@ BigInteger BigInteger::operator-(const BigInteger& v) const {
   }
   res.trim();
   res.sign = res.is_zero() ? 1 : res.sign;
+  // this version rounds to zero, python rounds to negative infinity
   return res;
 }
 
