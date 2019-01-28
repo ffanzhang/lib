@@ -181,7 +181,6 @@ BigInteger BigInteger::operator-(const BigInteger& v) const {
   }
   res.trim();
   res.sign = res.is_zero() ? 1 : res.sign;
-  // this version rounds to zero, python rounds to negative infinity
   return res;
 }
 
@@ -253,6 +252,7 @@ BigInteger BigInteger::operator/(const BigInteger& v) const {
   res.sign = sign * v.sign;
   res.trim();
   res.sign = res.is_zero() ? 1 : res.sign;
+  // this version rounds to zero, python rounds to negative infinity
   return res;
 }
 
