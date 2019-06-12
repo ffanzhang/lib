@@ -25,6 +25,7 @@ class Matrix {
     mod = other.mod;
   }
   void setmod(E mod) { this->mod = mod; }
+  E getmod() { return this->mod; }
   void set0() {
     fill(data.begin(), data.end(), std::vector<E>(data[0].size(), E(0)));
   }
@@ -41,7 +42,7 @@ class Matrix {
   Matrix operator+(const Matrix& other) const {
     assert(data.size() > 0 && data.size() == other.data.size());
     assert(data[0].size() == other.data[0].size());
-    Matrix res(data);
+    Matrix res(*this);
     for (I j = 0; j < data.size(); j++) {
       for (I i = 0; i < data[j].size(); i++) {
         res.data[j][i] += other.data[j][i];
@@ -55,7 +56,7 @@ class Matrix {
   Matrix operator-(const Matrix& other) const {
     assert(data.size() > 0 && data.size() == other.data.size());
     assert(data[0].size() == other.data[0].size());
-    Matrix res(data);
+    Matrix res(*this);
     for (I j = 0; j < data.size(); j++) {
       for (I i = 0; i < data[j].size(); i++) {
         res.data[j][i] -= other.data[j][i];
@@ -70,7 +71,7 @@ class Matrix {
     assert(data.size() > 0);
     assert(other.data.size() > 0);
     assert(data.size() == other.data[0].size());
-    Matrix res(data.size(), other.data[0].size());
+    Matrix res(data.size(), other.data[0].size(), this->mod);
     for (I j = 0; j < data.size(); j++) {
       for (I i = 0; i < other.data[0].size(); i++) {
         for (I k = 0; k < other.data.size(); k++) {
@@ -86,7 +87,7 @@ class Matrix {
     return res;
   }
   Matrix operator%(const E& M) const {
-    Matrix res(data);
+    Matrix res(*this);
     for (auto& row : res) {
       for (auto& e : row) {
         e %= M;
@@ -96,7 +97,7 @@ class Matrix {
   }
   Matrix pow(E n) {
     assert(data.size() > 0 && data.size() == data[0].size());
-    Matrix res(data);
+    Matrix res(*this);
     if (n == 0) {
       res.seteye();
       return res;
