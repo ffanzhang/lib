@@ -112,4 +112,14 @@ class Matrix {
     }
     return res;
   }
+  void print() {
+    std::cout << '\n';
+    for (int j = 0; j < data.size(); j++) {
+      for (int i = 0; i < data[j].size(); i++) {
+        std::cout << data[j][i] << ' ';
+      }
+      std::cout << '\n';
+    }
+    std::cout << '\n';
+  }
 };
