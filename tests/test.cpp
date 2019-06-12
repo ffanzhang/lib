@@ -10,6 +10,8 @@
 #include "ShortestPath.cpp"
 #include "Sudoku.cpp"
 #include "Union.cpp"
+#include "intm.cpp"
+
 using namespace std;
 
 template <class I, class E>
@@ -344,6 +346,46 @@ void testMatrix() {
   assert(d[1][1] == -8);
 }
 
+void testintm() {
+  intm x(3, 11);
+  intm y(7, 11);
+  assert((x + y) == intm(10, 11));
+  assert((x - y) == intm(7, 11));
+  assert((x * y) == intm(10, 11));
+  assert((x / y) == intm(2, 11));
+  x += intm(2, 11);
+  assert(x == intm(5, 11));
+  x += intm(8, 11);
+  assert(x == intm(2, 11));
+  x -= intm(3, 11);
+  assert(x == intm(10, 11));
+  x -= intm(12, 11);
+  assert(x == intm(9, 11));
+  x *= intm(8, 11);
+  assert(x == intm(6, 11));
+  x /= intm(2, 11);
+  assert(x++ == intm(3, 11));
+  assert(x == intm(4, 11));
+  assert(--x == intm(3, 11));
+  assert(x-- == intm(3, 11));
+  assert(x == intm(2, 11));
+  assert(--x == intm(1, 11));
+}
+
+void testintmMatrix() {
+  vector<vector<intm>> data = {{1, 1}, {1, 0}};
+  Matrix<int, intm> m(data);
+  auto r0 = m.pow(0);
+  assert(r0[0][0] == intm(1, 1000000007));
+  assert(r0[1][1] == intm(1, 1000000007));
+  auto r1 = m.pow(29);
+  assert(r1[0][0] == intm(832040, 1000000007));
+  auto r2 = m.pow(199);
+  assert(r2[0][0] == intm(349361645, 1000000007));
+  auto r3 = m.pow(399);
+  assert(r3[0][0] == intm(967250938, 1000000007));
+}
+
 int main() {
   testUnion();
   testSegmentTree();
@@ -353,5 +395,7 @@ int main() {
   testIO();
   testSudoku();
   testMatrix();
+  testintm();
+  testintmMatrix();
   return 0;
 }

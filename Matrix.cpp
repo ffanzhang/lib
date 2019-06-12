@@ -4,28 +4,20 @@
 template <class I, class E>
 class Matrix {
   std::vector<std::vector<E>> data;
-  E mod = -1;
 
  public:
   Matrix();
   ~Matrix() { data.clear(); }
-  Matrix(I row, I col, E mod = -1) {
-    this->mod = mod;
+  Matrix(I row, I col) {
     data.resize(row);
     fill(data.begin(), data.end(), std::vector<E>(col, E(0)));
   }
-  Matrix(const std::vector<std::vector<E>>& data, E mod = -1) {
-    this->data = data;
-    this->mod = mod;
-  }
+  Matrix(const std::vector<std::vector<E>>& data) { this->data = data; }
   Matrix(const Matrix& other) {
     // std::vector has an internal copy operator that copies inner
     // std::vectors recursively
     data = other.data;
-    mod = other.mod;
   }
-  void setmod(E mod) { this->mod = mod; }
-  E getmod() { return this->mod; }
   void set0() {
     fill(data.begin(), data.end(), std::vector<E>(data[0].size(), E(0)));
   }
@@ -45,10 +37,7 @@ class Matrix {
     Matrix res(*this);
     for (I j = 0; j < data.size(); j++) {
       for (I i = 0; i < data[j].size(); i++) {
-        res.data[j][i] += other.data[j][i];
-        if (mod > 0) {
-          res.data[j][i] %= mod;
-        }
+        res.data[j][i] = res.data[j][i] + other.data[j][i];
       }
     }
     return res;
@@ -60,9 +49,6 @@ class Matrix {
     for (I j = 0; j < data.size(); j++) {
       for (I i = 0; i < data[j].size(); i++) {
         res.data[j][i] -= other.data[j][i];
-        if (mod > 0) {
-          res.data[j][i] = (res.data[j][i] + mod) % mod;
-        }
       }
     }
     return res;
@@ -71,16 +57,11 @@ class Matrix {
     assert(data.size() > 0);
     assert(other.data.size() > 0);
     assert(data.size() == other.data[0].size());
-    Matrix res(data.size(), other.data[0].size(), this->mod);
+    Matrix res(data.size(), other.data[0].size());
     for (I j = 0; j < data.size(); j++) {
       for (I i = 0; i < other.data[0].size(); i++) {
         for (I k = 0; k < other.data.size(); k++) {
-          if (mod > 0) {
-            res.data[j][i] =
-                (res.data[j][i] + data[j][k] * other.data[k][i] % mod) % mod;
-          } else {
-            res.data[j][i] += data[j][k] * other.data[k][i];
-          }
+          res.data[j][i] += data[j][k] * other.data[k][i];
         }
       }
     }
@@ -95,7 +76,7 @@ class Matrix {
     }
     return res;
   }
-  Matrix pow(E n) {
+  Matrix pow(I n) {
     assert(data.size() > 0 && data.size() == data[0].size());
     Matrix res(*this);
     if (n == 0) {
