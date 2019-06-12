@@ -36,7 +36,7 @@ struct intm {
   intm operator/(const intm& other) const {
     return intm((n * other.inverse().n) % m, m);
   }
-  intm operator%(intm& other) const { return intm((n % other.n), m); }
+  intm operator%(const intm& other) const { return intm((n % other.n), m); }
   intm& operator+=(const intm& other) {
     this->n += other.n;
     this->n %= m;
