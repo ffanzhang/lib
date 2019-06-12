@@ -5,6 +5,7 @@
 #include "BigInteger.cpp"
 #include "Flow.cpp"
 #include "IO.cpp"
+#include "Matrix.cpp"
 #include "SegmentTree.cpp"
 #include "ShortestPath.cpp"
 #include "Sudoku.cpp"
@@ -168,8 +169,8 @@ void testBigInteger() {
   assert(z == 101);
   assert(z++ == 101);
   assert(z == 102);
-  // do 10000 random divisions
-  for (int i = 0; i < 10000; i++) {
+  // do 100 random divisions
+  for (int i = 0; i < 100; i++) {
     long long x = rand();
     long long y = rand() + 1;
     BigInteger xy = BigInteger(x) / BigInteger(y);
@@ -314,6 +315,35 @@ void testSudoku() {
   checkboard(soln);
 }
 
+void testMatrix() {
+  // use fib matrix to test multiplication and power
+  vector<vector<int>> data = {{1, 1}, {1, 0}};
+  Matrix<int, int> m(data);
+  auto r0 = m.pow(0);
+  assert(r0.get(0, 0) == 1);
+  assert(r0.get(1, 1) == 1);
+  auto r1 = m.pow(1);
+  assert(r1[0][0] == 1);
+  auto r2 = m.pow(2);
+  assert(r2[0][0] == 2);
+  auto r3 = m.pow(5);
+  assert(r3[0][0] == 8);
+  auto r4 = m.pow(29);
+  assert(r4[0][0] == 832040);
+  vector<vector<int>> data2 = {{2, 4}, {3, 8}};
+  Matrix<int, int> b(data2);
+  auto c = m + b;
+  auto d = m - b;
+  assert(c[0][0] == 3);
+  assert(c[0][1] == 5);
+  assert(c[1][0] == 4);
+  assert(c[1][1] == 8);
+  assert(d[0][0] == -1);
+  assert(d[0][1] == -3);
+  assert(d[1][0] == -2);
+  assert(d[1][1] == -8);
+}
+
 int main() {
   testUnion();
   testSegmentTree();
@@ -322,6 +352,6 @@ int main() {
   testBigInteger();
   testIO();
   testSudoku();
-  cout << "wlalalal" << endl;
+  testMatrix();
   return 0;
 }

@@ -164,7 +164,12 @@ BigInteger BigInteger::operator+(const BigInteger& v) const {
 }
 
 BigInteger BigInteger::operator-(const BigInteger& v) const {
-  BigInteger res;
+  /*
+    BigInteger other(v);
+    other.sign *= -1;
+    return (*this) + other;
+  */
+  BigInteger res = v;
   if (sign == v.sign) {
     if (abs() >= v.abs()) {
       res = *this;
