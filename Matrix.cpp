@@ -77,7 +77,7 @@ class Matrix {
         for (I k = 0; k < other.data.size(); k++) {
           if (mod > 0) {
             res.data[j][i] =
-                (res.data[j][i] + data[j][k] * other.data[i][i] % mod) % mod;
+                (res.data[j][i] + data[j][k] * other.data[k][i] % mod) % mod;
           } else {
             res.data[j][i] += data[j][k] * other.data[k][i];
           }
