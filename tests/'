@@ -29,7 +29,11 @@ class Matrix {
       data[i][i] = E(1);
     }
   }
-  void set(I row, I col, E e) { this->data[row][col] = e; }
+  void set(I row, I col, E e) {
+    std::cout << "setting\n";
+    this->data[row][col] = e;
+    std::cout << "done setting\n";
+  }
   E get(I row, I col) { return data[row][col]; }
   std::vector<E>& operator[](I i) { return data[i]; }
   Matrix operator+(const Matrix& other) const {
@@ -109,28 +113,29 @@ class Matrix {
     std::cout << '\n';
   }
   template <class _I, class _E>
-  friend std::istream& operator>>(std::istream&, Matrix<_I, _E>& m);
+  friend std::istream& operator>>(std::istream&, Matrix<_I, _E>&);
 
   template <class _I, class _E>
-  friend std::ostream& operator<<(std::ostream&, const Matrix<_I, _E>& m);
+  friend std::ostream& operator<<(std::ostream&, Matrix<_I, _E>);
 };
 
 template <class I, class E>
 std::istream& operator>>(std::istream& stream, Matrix<I, E>& m) {
-  int r, c;
+  I r, c;
+  E e;
   stream >> r >> c;
   m.data.resize(r);
-  for (int j = 0; j < r; j++) {
-    m.data[j].resize(c);
-    for (int i = 0; i < c; i++) {
-      stream >> m.data[j][i];
+  for (I j = 0; j < r; j++) {
+      m.data[j].resize(c);
+    for (I i = 0; i < c; i++) {
+      stream >> m.data[r][c];
     }
   }
   return stream;
 }
 
 template <class I, class E>
-std::ostream& operator<<(std::ostream& stream, const Matrix<I, E>& m) {
+std::ostream& operator<<(std::ostream& stream, Matrix<I, E> m) {
   stream << '\n';
   for (I j = 0; j < m.data.size(); j++) {
     for (I i = 0; i < m.data[j].size(); i++) {

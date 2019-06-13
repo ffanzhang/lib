@@ -375,6 +375,7 @@ void testintm() {
 void testintmMatrix() {
   vector<vector<intm>> data = {{1, 1}, {1, 0}};
   Matrix<int, intm> m(data);
+  intm z(123, 123);
   auto r0 = m.pow(0);
   assert(r0[0][0] == intm(1, 1000000007));
   assert(r0[1][1] == intm(1, 1000000007));
@@ -384,6 +385,9 @@ void testintmMatrix() {
   assert(r2[0][0] == intm(349361645, 1000000007));
   auto r3 = m.pow(399);
   assert(r3[0][0] == intm(967250938, 1000000007));
+  Matrix<int, intm> x(0, 0);
+  cin >> x;
+  cout << x << endl;
 }
 
 int main() {

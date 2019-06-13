@@ -4,6 +4,7 @@
 struct intm {
   long long m = 1000 * 1000 * 1000 + 7;
   long long n;
+  intm() : n(0) {}
   intm(long long n) : n(n) {}
   intm(long long n, long long m) : n(n), m(m) {}
   intm(const intm& other) : n(other.n), m(other.m) {}
@@ -89,7 +90,7 @@ struct intm {
   bool operator==(const intm& other) { return n == other.n; }
   bool operator!=(const intm& other) { return n != other.n; }
   friend std::istream& operator>>(std::istream&, intm&);
-  friend std::ostream& operator<<(std::ostream&, intm&);
+  friend std::ostream& operator<<(std::ostream&, const intm&);
 };
 
 std::istream& operator>>(std::istream& stream, intm& v) {
@@ -99,7 +100,7 @@ std::istream& operator>>(std::istream& stream, intm& v) {
   return stream;
 }
 
-std::ostream& operator<<(std::ostream& stream, intm& v) {
+std::ostream& operator<<(std::ostream& stream, const intm& v) {
   stream << v.n;
   return stream;
 }
