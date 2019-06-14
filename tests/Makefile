@@ -6,6 +6,7 @@ OBJFILES = test.o
 test: $(OBJFILES) 
 	clang-format -i -style=Google ../*.cpp test.cpp
 	$(CC) -o test $(OBJFILES) 
+	@python test_BigInteger.py > BigIntegero.txt 
 	time ./test
 
 clean:

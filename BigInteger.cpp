@@ -1,34 +1,47 @@
 #include <algorithm>
+#include <cassert>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <string>
 #include <vector>
+
+class BigInteger;
+BigInteger long_mul(const BigInteger& x, const BigInteger& y);
+BigInteger long_div(const BigInteger& x, const BigInteger& y);
 
 class BigInteger {
  public:
-  const long long base = 1000000000;
+  const unsigned long long base = 1000 * 1000 * 1000;
   const int base_digits = 9;
 
-  std::vector<int> z;
-  int sign;
-  BigInteger() : sign(1), z(1, 0){};
-  ~BigInteger() { z.clear(); }
-  BigInteger(const int);
-  BigInteger(const long long);
+  // most significant digit determines the sign,
+  // MSB of [0, boundary) means positive
+  // [boundary, base) means negative
+  // sign extension appends 0 or (base - 1) to MSD
+  const unsigned long long boundary = base / 2ll;
+  std::vector<unsigned int> digits;
+
+  // need to maintain a vector size of 1 at all times
+  BigInteger() : digits(1, 0) {}
+  ~BigInteger() { digits.clear(); }
+  BigInteger(const long long&);
   BigInteger(const std::string&);
   BigInteger(const BigInteger&);
 
   bool is_zero() const;
-  void trim();
-  void print();
+  bool is_positive() const;
+  void print() const;
+  std::string to_string() const;
 
-  BigInteger abs() const;
-  BigInteger operator-() const;
+  // assum well formed input for internal calls and maintain invariance
+  // before calling other functions
+  BigInteger& append_sign();
+  BigInteger& sign_extend(unsigned int num_digits);
+  BigInteger& trim();
+  BigInteger& negate();
   BigInteger& operator=(const BigInteger&);
-  BigInteger operator+(const BigInteger&) const;
-  BigInteger operator-(const BigInteger&) const;
-  BigInteger operator*(const BigInteger&)const;
-  BigInteger operator/(const BigInteger&) const;
+  unsigned int& operator[](int i);
 
   // prefix increment
   BigInteger& operator++();
@@ -38,6 +51,13 @@ class BigInteger {
   BigInteger& operator--();
   // postfix decrement
   BigInteger operator--(int);
+
+  BigInteger abs() const;
+  BigInteger operator-() const;
+  BigInteger operator+(const BigInteger&) const;
+  BigInteger operator-(const BigInteger&) const;
+  BigInteger operator*(const BigInteger&)const;
+  BigInteger operator/(const BigInteger&) const;
 
   bool operator<(const BigInteger&) const;
   bool operator>(const BigInteger&) const;
@@ -58,87 +78,137 @@ class BigInteger {
 };
 
 bool BigInteger::is_zero() const {
-  return z.size() == 0 || (z.size() == 1 && z.back() == 0);
+  return digits.size() == 1 && digits.back() == 0;
 }
 
-void BigInteger::trim() {
-  while (z.size() > 1 && z.back() == 0) {
-    z.pop_back();
-  }
+bool BigInteger::is_positive() const {
+  assert(digits.size() > 0);
+  return digits.back() == 0;
 }
-void BigInteger::print() {
-  if (sign == -1) std::cout << '-';
-  std::cout << (z.empty() ? 0 : z.back());
-  for (int i = static_cast<int>(z.size()) - 2; i >= 0; i--) {
-    std::cout << std::setw(base_digits) << std::setfill('0') << z[i];
+
+BigInteger& BigInteger::trim() {
+  if (digits.size() > 0 && digits.back() == 0) {
+    while (digits.size() > 0 && digits.back() == 0) {
+      digits.pop_back();
+    }
+    digits.push_back(0);
+    return *this;
+  }
+  if (digits.size() > 0 && digits.back() == base - 1) {
+    while (digits.size() > 0 && digits.back() == base - 1) {
+      digits.pop_back();
+    }
+    digits.push_back(base - 1);
+    return *this;
   }
 }
 
-BigInteger::BigInteger(const int v) : sign(1), z(1, 0) {
-  if (v == 0) {
-    return;
+BigInteger& BigInteger::sign_extend(unsigned int num_digits) {
+  assert(digits.size() > 0 &&
+         (digits.back() == 0 || digits.back() == (base - 1)));
+  while (digits.size() < num_digits) {
+    digits.push_back(digits.back());
   }
-  int val = v;
-  if (v < 0) {
-    sign = -1;
-    val = -val;
+  return *this;
+}
+
+BigInteger& BigInteger::negate() {
+  assert(digits.size() > 0 &&
+         (digits.back() == 0 || digits.back() == (base - 1)));
+  if (is_zero()) {
+    return *this;
   }
-  z.clear();
-  while (val) {
-    z.push_back(val % base);
-    val /= base;
+  for (auto& d : digits) {
+    d = base - 1 - d;
+  }
+  for (auto& d : digits) {
+    if (d != base - 1) {
+      d += 1;
+      break;
+    } else {
+      d = 0;
+    }
   }
   trim();
-  sign = is_zero() ? 1 : sign;
+  return *this;
 }
 
-BigInteger::BigInteger(const long long v) : sign(1), z(1, 0) {
+BigInteger& BigInteger::append_sign() {
+  if (digits.size() == 0) {
+    digits.push_back(0);
+    return *this;
+  }
+  if (digits.back() < boundary && digits.back() != 0) {
+    digits.push_back(0);
+  }
+  if (digits.back() >= boundary && digits.back() != base - 1) {
+    digits.push_back(base - 1);
+  }
+  return *this;
+}
+
+void BigInteger::print() const {
+  for (auto e : digits) {
+    std::cout << e << ' ';
+  }
+  std::cout << '\n';
+}
+
+BigInteger::BigInteger(const long long& v) {
   if (v == 0) {
+    digits.push_back(0);
     return;
   }
+  bool neg = false;
   long long val = v;
-  if (v < 0) {
-    sign = -1;
+  if (val < 0) {
+    neg = true;
     val = -val;
   }
-  z.clear();
   while (val) {
-    z.push_back(val % base);
+    digits.push_back(val % base);
     val /= base;
   }
-  trim();
-  sign = is_zero() ? 1 : sign;
+  digits.push_back(0);
+  if (neg == true) {
+    negate();
+  }
 }
 
-BigInteger::BigInteger(const std::string& s) : sign(1), z(1, 0) {
+BigInteger::BigInteger(const std::string& s) {
   int pos = 0;
-  for (; pos < static_cast<int>(s.size()) && (s[pos] == '-' || s[pos] == '+');
-       pos++) {
-    if (s[pos] == '-') sign = -sign;
+  bool negative = false;
+  for (; pos < s.size() && (s[pos] == '-' || s[pos] == '+'); pos++) {
+    if (s[pos] == '-') {
+      negative = true;
+    }
   }
-  z.clear();
   for (int i = s.size() - 1; i >= pos; i -= base_digits) {
-    int x = 0;
-    for (int j = std::max(pos, i - base_digits + 1); j <= i; j++)
+    long long x = 0;
+    for (int j = std::max(pos, i - base_digits + 1); j <= i; j++) {
       x = x * 10 + s[j] - '0';
-    z.push_back(x);
+    }
+    digits.push_back(x);
   }
+  digits.push_back(0);
   trim();
-  sign = is_zero() ? 1 : sign;
+  if (negative) {
+    negate();
+  }
 }
 
 BigInteger::BigInteger(const BigInteger& v) {
-  sign = v.sign;
-  z.clear();
-  std::copy(v.z.begin(), v.z.end(), std::back_inserter(z));
+  digits.clear();
+  digits = v.digits;
 }
 
 BigInteger& BigInteger::operator=(const BigInteger& v) {
-  sign = v.sign;
-  z.clear();
-  std::copy(v.z.begin(), v.z.end(), std::back_inserter(z));
+  digits.clear();
+  digits = v.digits;
   return *this;
 }
+
+unsigned int& BigInteger::operator[](int i) { return digits[i]; }
 
 BigInteger BigInteger::operator+(const BigInteger& v) const {
   if (v.is_zero()) {
@@ -147,126 +217,40 @@ BigInteger BigInteger::operator+(const BigInteger& v) const {
   if (is_zero()) {
     return v;
   }
-  if (sign == v.sign) {
-    BigInteger res = v;
-    for (int i = 0, carry = 0; i < std::max(z.size(), v.z.size()) || carry;
-         i++) {
-      if (i == res.z.size()) res.z.push_back(0);
-      res.z[i] += carry + (i < z.size() ? z[i] : 0);
-      carry = res.z[i] >= base;
-      if (carry) res.z[i] -= base;
-    }
-    res.trim();
-    res.sign = res.is_zero() ? 1 : res.sign;
-    return res;
+  BigInteger res(v);
+  if (digits.size() > v.digits.size()) {
+    res.sign_extend(digits.size());
   }
-  return *this - (-v);
+  long long carry = 0, i = 0;
+  for (i = 0; i < digits.size(); i++) {
+    res[i] += digits[i] + carry;
+    carry = res[i] / base;
+    res[i] = res[i] % base;
+  }
+  // sign extending without actually doing it
+  for (; i < res.digits.size(); i++) {
+    res[i] += digits.back() + carry;
+    carry = res[i] / base;
+    res[i] = res[i] % base;
+  }
+  res.append_sign();
+  res.trim();
+  return res;
 }
 
 BigInteger BigInteger::operator-(const BigInteger& v) const {
-  /*
-    BigInteger other(v);
-    other.sign *= -1;
-    return (*this) + other;
-  */
-  BigInteger res = v;
-  if (sign == v.sign) {
-    if (abs() >= v.abs()) {
-      res = *this;
-      for (int i = 0, carry = 0; i < v.z.size() || carry; i++) {
-        res.z[i] -= carry + (i < v.z.size() ? v.z[i] : 0);
-        carry = res.z[i] < 0;
-        if (carry) res.z[i] += base;
-      }
-    } else {
-      res = -(v - *this);
-    }
-  } else {
-    res = *this + (-v);
-  }
-  res.trim();
-  res.sign = res.is_zero() ? 1 : res.sign;
-  return res;
+  return (*this) + BigInteger(v).negate();
 }
 
 BigInteger BigInteger::operator*(const BigInteger& v) const {
-  if (is_zero() || v.is_zero()) {
-    return BigInteger(0);
-  }
-  BigInteger res = *this;
-  res.z.resize(this->z.size() + v.z.size() + 2);
-  std::fill(res.z.begin(), res.z.end(), 0);
-  for (int i = 0; i < z.size(); i++) {
-    for (long long j = 0, carry = 0LL; j < v.z.size() || carry > 0; j++) {
-      long long s =
-          static_cast<long long>(res.z[i + j]) + carry +
-          static_cast<long long>(z[i]) *
-              ((j < v.z.size()) ? static_cast<long long>(v.z[j]) : 0LL);
-      res.z[i + j] = s % base;
-      carry = s / base;
-    }
-  }
-  res.sign *= v.sign;
-  res.trim();
-  res.sign = res.is_zero() ? 1 : res.sign;
-  return res;
+  return long_mul(*this, v);
 }
 
 BigInteger BigInteger::operator/(const BigInteger& v) const {
-  if (v.is_zero()) {
-    throw std::overflow_error("BigInteger Division by Zero.");
-  }
-  if (v.abs() > abs() || is_zero()) {
-    return BigInteger(0);
-  }
-  if (abs() == v.abs()) {
-    return sign == v.sign ? BigInteger(1) : BigInteger(-1);
-  }
-  BigInteger res, cur, vv = v;
-  cur.z.clear();
-  vv.sign = 1;
-  for (int i = static_cast<int>(this->z.size()) - 1; i >= 0; i--) {
-    cur.z.insert(cur.z.begin(), this->z[i]);
-    long long sol = -1LL, lo = 0LL, hi = base - 1;
-    while (lo <= hi) {
-      long long mid = lo + (hi - lo) / 2LL;
-      BigInteger r = vv * BigInteger(mid);
-      if (r < cur) {
-        lo = mid + 1;
-      } else if (r > cur) {
-        hi = mid - 1;
-      } else {
-        sol = mid;
-        break;
-      }
-    }
-    if (sol == -1LL) {
-      sol = lo;
-    }
-    while ((vv * BigInteger(sol)) < cur) {
-      sol++;
-    }
-    while ((vv * BigInteger(sol)) > cur && sol > 0) {
-      sol--;
-    }
-    cur = cur - vv * BigInteger(std::min(base - 1LL, std::max(0LL, sol)));
-    res.z.insert(res.z.begin(), std::min(base - 1LL, std::max(0LL, sol)));
-    cur.trim();
-    res.trim();
-  }
-  res.sign = sign * v.sign;
-  res.trim();
-  res.sign = res.is_zero() ? 1 : res.sign;
-  // this version rounds to zero, python rounds to negative infinity
-  return res;
+  return long_div(*this, v);
 }
 
-BigInteger BigInteger::operator-() const {
-  BigInteger res = *this;
-  res.sign = -sign;
-  res.sign = res.is_zero() ? 1 : res.sign;
-  return res;
-}
+BigInteger BigInteger::operator-() const { return BigInteger(*this).negate(); }
 
 // prefix increment
 BigInteger& BigInteger::operator++() {
@@ -295,16 +279,21 @@ BigInteger BigInteger::operator--(int post) {
 }
 
 BigInteger BigInteger::abs() const {
-  BigInteger res = *this;
-  res.sign *= res.sign;
+  BigInteger res(*this);
+  if (!res.is_positive()) {
+    res.negate();
+  }
   return res;
 }
 
 bool BigInteger::operator<(const BigInteger& v) const {
-  if (sign != v.sign) return sign < v.sign;
-  if (z.size() != v.z.size()) return z.size() * sign < v.z.size() * v.sign;
-  for (int i = z.size() - 1; i >= 0; i--)
-    if (z[i] != v.z[i]) return z[i] * sign < v.z[i] * v.sign;
+  int sign = is_positive() * 2 - 1;
+  int vsign = v.is_positive() * 2 - 1;
+  if (sign != vsign) return sign < vsign;
+  if (digits.size() != v.digits.size())
+    return digits.size() * sign < v.digits.size() * vsign;
+  for (int i = digits.size() - 1; i >= 0; i--)
+    if (digits[i] != v.digits[i]) return digits[i] < v.digits[i];
   return false;
 }
 
@@ -346,6 +335,13 @@ bool BigInteger::operator!=(const long long v) const {
   return *this != BigInteger(v);
 }
 
+std::string BigInteger::to_string() const {
+  BigInteger v(*this);
+  std::ostringstream oss;
+  oss << v;
+  return oss.str();
+}
+
 std::istream& operator>>(std::istream& stream, BigInteger& v) {
   std::string s;
   stream >> s;
@@ -354,16 +350,106 @@ std::istream& operator>>(std::istream& stream, BigInteger& v) {
 }
 
 std::ostream& operator<<(std::ostream& stream, BigInteger v) {
-  if (v.sign == -1) stream << '-';
-  stream << (v.z.empty() ? 0 : v.z.back());
-  for (int i = static_cast<int>(v.z.size()) - 2; i >= 0; --i)
-    stream << std::setw(v.base_digits) << std::setfill('0') << v.z[i];
+  if (!v.is_positive()) {
+    stream << '-';
+    v.negate();
+  }
+  while (v.digits.size() > 0 && v.digits.back() == 0) {
+    v.digits.pop_back();
+  }
+  stream << (v.digits.empty() ? 0 : v.digits.back());
+  for (int i = static_cast<int>(v.digits.size()) - 2; i >= 0; --i)
+    stream << std::setw(v.base_digits) << std::setfill('0') << v.digits[i];
   return stream;
 }
 
+/*
 BigInteger pow(const BigInteger& a, const BigInteger& b) {
   if (b == BigInteger(0)) return BigInteger(1);
   BigInteger tmp = pow(a, b / BigInteger(2));
   if (b.z[0] % 2 == 0) return tmp * tmp;
   return tmp * tmp * a;
+}
+*/
+
+BigInteger long_mul(const BigInteger& x, const BigInteger& y) {
+  if (x.is_zero() || y.is_zero()) {
+    return BigInteger(0);
+  }
+  BigInteger c;
+  unsigned int op_size = std::max(x.digits.size(), y.digits.size()) * 2ll;
+  int valid_digits = x.digits.size() + y.digits.size() - 1;
+
+  c.sign_extend(op_size);
+  for (long long i = 0; i < valid_digits; i++) {
+    for (long long j = 0, carry = 0; j + i < valid_digits; j++) {
+      long long s =
+          static_cast<long long>(c.digits[i + j]) + carry +
+          static_cast<long long>(
+              x.digits[std::min(i, (long long)x.digits.size() - 1)]) *
+              static_cast<long long>(
+                  y.digits[std::min(j, (long long)y.digits.size() - 1)]);
+      c.digits[i + j] = s % c.base;
+      carry = s / c.base;
+    }
+  }
+  while (c.digits.size() > valid_digits) {
+    c.digits.pop_back();
+  }
+  c.append_sign();
+  c.trim();
+  return c;
+}
+
+BigInteger long_div(const BigInteger& x, const BigInteger& y) {
+  if (y.is_zero()) {
+    throw std::overflow_error("BigInteger Division by Zero.");
+  }
+  bool xsign = x.is_positive();
+  bool ysign = y.is_positive();
+  bool res_postive = (xsign - ysign) == 0;
+
+  BigInteger a(x.abs());
+  BigInteger b(y.abs());
+  BigInteger tmp;
+  BigInteger res;
+
+  if (a.is_zero() || b > a) {
+    return BigInteger(0);
+  }
+  if (a == b) {
+    return res_postive ? BigInteger(1) : BigInteger(-1);
+  }
+  BigInteger test_int;
+  for (int i = a.digits.size() - 1; i >= 0; i--) {
+    tmp.digits.insert(tmp.digits.begin(), a.digits[i]);
+    long long lo = 0ll, hi = a.base, cur_digit = 0ll;
+    while (lo < hi) {
+      long long mid = lo + (hi - lo) / 2ll;
+      test_int = b * BigInteger(mid);
+      if (test_int < tmp) {
+        lo = mid + 1;
+      } else {
+        hi = mid;
+      }
+    }
+    // test_int should be >= tmp
+    if (test_int == tmp) {
+      cur_digit = lo;
+    } else {
+      cur_digit = std::max(0ll, lo - 1);
+    }
+    if (cur_digit > 0) {
+      tmp = tmp - b * BigInteger(cur_digit);
+    }
+    res.digits.insert(res.digits.begin(), cur_digit);
+    tmp.trim();
+    res.trim();
+  }
+  res.trim();
+  if (!res_postive) {
+    res.negate();
+  }
+  // this version rounds to zero, python rounds to negative infinity
+  return res;
 }

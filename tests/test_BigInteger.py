@@ -6,6 +6,7 @@ for line in open("BigInteger.txt"):
 
 for a in nums:
     for b in nums:
+        print(str(a) + ' ' + str(b))
         print(a + b)
         print(a - b)
         print(a * b)

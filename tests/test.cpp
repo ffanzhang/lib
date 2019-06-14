@@ -129,11 +129,41 @@ std::string exec(const char *cmd) {
 }
 
 void testBigInteger() {
+  // small numbers
+  BigInteger zero(0);
   BigInteger a(11);
   BigInteger b(11);
   assert(a + b == BigInteger(22));
-  assert(a * b == BigInteger(121));
   assert(a - b == BigInteger(0));
+  assert(a * b == BigInteger(121));
+
+  // zero has a size of 1
+  assert(zero.digits.size() == 1);
+  assert(zero.digits.back() == 0);
+
+  // adding zero with all other numbers
+  assert(BigInteger(0) + BigInteger(0) == BigInteger(0));
+  assert(BigInteger(0) + BigInteger(-123123123) == BigInteger(-123123123));
+  assert(BigInteger(-382321) + BigInteger(0) == BigInteger(-382321));
+  assert(BigInteger(0) + BigInteger(12321) == BigInteger(12321));
+  assert(BigInteger(348) + BigInteger(0) == BigInteger(348));
+  assert(BigInteger(1283) + BigInteger(376) == BigInteger(1659));
+
+  // test some overflows
+  assert(BigInteger(1000 * 1000 * 1000 - 1) + BigInteger(1) ==
+         BigInteger(1000 * 1000 * 1000));
+  assert(BigInteger(1) + BigInteger(1000 * 1000 * 1000 - 1) ==
+         BigInteger(1000 * 1000 * 1000));
+  assert(BigInteger(-1000 * 1000 * 1000 + 1) + BigInteger(-1) ==
+         BigInteger(-1000 * 1000 * 1000));
+  assert(BigInteger(-1) + BigInteger(-1000 * 1000 * 1000 + 1) ==
+         BigInteger(-1000 * 1000 * 1000));
+  assert(BigInteger(-1) + BigInteger(-(zero.base - 1)) ==
+         BigInteger(-zero.base));
+  assert(BigInteger(-(zero.base - 1)) + BigInteger(-1) ==
+         BigInteger(-zero.base));
+  assert(BigInteger(1) + BigInteger((zero.base - 1)) == BigInteger(zero.base));
+  assert(BigInteger((zero.base - 1)) + BigInteger(1) == BigInteger(zero.base));
 
   BigInteger c("12312312312312313123123");
   BigInteger d("78787873241614257823");
@@ -171,41 +201,32 @@ void testBigInteger() {
   assert(z == 101);
   assert(z++ == 101);
   assert(z == 102);
-  // do 100 random divisions
-  for (int i = 0; i < 100; i++) {
-    long long x = rand();
-    long long y = rand() + 1;
+
+  // do 1000 random divisions
+  for (int i = 0; i < 1000; i++) {
+    BigInteger x(rand());
+    BigInteger y(rand() + 1);
+    for (int j = 0; j < 1000; j++) {
+      x = x + BigInteger(rand());
+      y = y + BigInteger(rand() % 100);
+    }
     BigInteger xy = BigInteger(x) / BigInteger(y);
     assert(xy == x / y);
   }
-  ifstream fin("BigInteger.txt");
-  vector<BigInteger> bints;
-  vector<BigInteger> bres;
-  string s;
-  while (fin >> s) {
-    bints.push_back(BigInteger(s));
+  ifstream fin2("BigIntegero.txt");
+  string s, sa, sb;
+  while (fin2 >> sa >> sb) {
+    BigInteger a(sa);
+    BigInteger b(sb);
+    fin2 >> s;
+    assert(a + b == BigInteger(s));
+    fin2 >> s;
+    assert(a - b == BigInteger(s));
+    fin2 >> s;
+    assert(a * b == BigInteger(s));
+    fin2 >> s;
+    assert(a.abs() / b.abs() == BigInteger(s));
   }
-  for (auto &a : bints) {
-    for (auto &b : bints) {
-      bres.push_back(a + b);
-      bres.push_back(a - b);
-      bres.push_back(a * b);
-      bres.push_back(a.abs() / b.abs());
-    }
-  }
-
-  std::string pyres = exec("python test_BigInteger.py");
-  stringstream outputs;
-  string result;
-  vector<BigInteger> results;
-  outputs << pyres;
-  while (outputs >> result) {
-    results.push_back(BigInteger(result));
-  }
-  for (int i = 0; i < bres.size(); i++) {
-    assert(bres[i] == results[i]);
-  }
-
   // test division by 0;
   try {
     z / 0;
@@ -391,15 +412,19 @@ void testintmMatrix() {
 }
 
 int main() {
-  testUnion();
-  testSegmentTree();
-  testFlow();
-  testShortestPath();
+  /*
+testUnion();
+testSegmentTree();
+testFlow();
+testShortestPath();
+*/
   testBigInteger();
+  /*
   testIO();
   testSudoku();
   testMatrix();
   testintm();
   testintmMatrix();
+  */
   return 0;
 }
