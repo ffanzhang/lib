@@ -213,19 +213,21 @@ void testBigInteger() {
     BigInteger xy = BigInteger(x) / BigInteger(y);
     assert(xy == x / y);
   }
-  ifstream fin2("BigIntegero.txt");
+  ifstream fin("BigIntegero.txt");
   string s, sa, sb;
-  while (fin2 >> sa >> sb) {
+  while (fin >> sa >> sb) {
     BigInteger a(sa);
     BigInteger b(sb);
-    fin2 >> s;
+    fin >> s;
     assert(a + b == BigInteger(s));
-    fin2 >> s;
+    fin >> s;
     assert(a - b == BigInteger(s));
-    fin2 >> s;
+    fin >> s;
     assert(a * b == BigInteger(s));
-    fin2 >> s;
+    fin >> s;
     assert(a.abs() / b.abs() == BigInteger(s));
+    fin >> s;
+    assert(a % b == BigInteger(s));
   }
   // test division by 0;
   try {

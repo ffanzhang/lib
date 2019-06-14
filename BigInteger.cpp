@@ -8,7 +8,7 @@
 
 class BigInteger;
 BigInteger long_mul(const BigInteger& x, const BigInteger& y);
-BigInteger long_div(const BigInteger& x, const BigInteger& y);
+BigInteger long_div(const BigInteger& x, const BigInteger& y, BigInteger&);
 
 class BigInteger {
  public:
@@ -58,6 +58,8 @@ class BigInteger {
   BigInteger operator-(const BigInteger&) const;
   BigInteger operator*(const BigInteger&)const;
   BigInteger operator/(const BigInteger&) const;
+  BigInteger operator%(const BigInteger&) const;
+  BigInteger operator%(const long long&) const;
 
   bool operator<(const BigInteger&) const;
   bool operator>(const BigInteger&) const;
@@ -76,6 +78,8 @@ class BigInteger {
   friend std::istream& operator>>(std::istream&, BigInteger&);
   friend std::ostream& operator<<(std::ostream&, BigInteger);
 };
+
+static BigInteger _dummy_mod(0);
 
 bool BigInteger::is_zero() const {
   return digits.size() == 1 && digits.back() == 0;
@@ -247,7 +251,19 @@ BigInteger BigInteger::operator*(const BigInteger& v) const {
 }
 
 BigInteger BigInteger::operator/(const BigInteger& v) const {
-  return long_div(*this, v);
+  return long_div(*this, v, _dummy_mod);
+}
+
+BigInteger BigInteger::operator%(const BigInteger& v) const {
+  BigInteger mod;
+  long_div(*this, v, mod);
+  return mod;
+}
+
+BigInteger BigInteger::operator%(const long long& v) const {
+  BigInteger mod;
+  long_div(*this, BigInteger(v), mod);
+  return mod;
 }
 
 BigInteger BigInteger::operator-() const { return BigInteger(*this).negate(); }
@@ -401,13 +417,13 @@ BigInteger long_mul(const BigInteger& x, const BigInteger& y) {
   return c;
 }
 
-BigInteger long_div(const BigInteger& x, const BigInteger& y) {
+BigInteger long_div(const BigInteger& x, const BigInteger& y, BigInteger& mod) {
   if (y.is_zero()) {
     throw std::overflow_error("BigInteger Division by Zero.");
   }
   bool xsign = x.is_positive();
   bool ysign = y.is_positive();
-  bool res_postive = (xsign - ysign) == 0;
+  bool res_postive = (xsign == ysign);
 
   BigInteger a(x.abs());
   BigInteger b(y.abs());
@@ -415,11 +431,21 @@ BigInteger long_div(const BigInteger& x, const BigInteger& y) {
   BigInteger res;
 
   if (a.is_zero() || b > a) {
+    if (xsign == ysign) {
+      mod = a;
+    } else {
+      mod = b - a;
+    }
+    if (ysign == false) {
+      mod.negate();
+    }
     return BigInteger(0);
   }
   if (a == b) {
+    mod = BigInteger(0);
     return res_postive ? BigInteger(1) : BigInteger(-1);
   }
+
   BigInteger test_int;
   for (int i = a.digits.size() - 1; i >= 0; i--) {
     tmp.digits.insert(tmp.digits.begin(), a.digits[i]);
@@ -446,9 +472,18 @@ BigInteger long_div(const BigInteger& x, const BigInteger& y) {
     tmp.trim();
     res.trim();
   }
+  tmp.trim();
   res.trim();
+  if (ysign != xsign) {
+    mod = b - tmp;
+  } else {
+    mod = tmp;
+  }
   if (!res_postive) {
     res.negate();
+  }
+  if (ysign == false) {
+    mod.negate();
   }
   // this version rounds to zero, python rounds to negative infinity
   return res;

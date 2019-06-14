@@ -14,5 +14,6 @@ for a in nums:
         # where as cpp rounds to 0, currently testing pos
         # division only
         print(int(math.floor(abs(a) / abs(b))))
+        print(a % b)
 
 sys.stdout.flush()
