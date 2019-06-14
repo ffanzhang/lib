@@ -104,3 +104,6 @@ std::ostream& operator<<(std::ostream& stream, const intm& v) {
   stream << v.n;
   return stream;
 }
+
+// kattis:
+// pseudoprime: intm with a sieve of size of sqrt(max(p))

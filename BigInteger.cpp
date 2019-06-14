@@ -388,6 +388,15 @@ BigInteger pow(const BigInteger& a, const BigInteger& b) {
   return tmp * a;
 }
 
+BigInteger pow_mod(const BigInteger& a, const BigInteger& b, const BigInteger& m) {
+  if (b == BigInteger(0)) return BigInteger(1);
+  if (b == BigInteger(1)) return a % m;
+  BigInteger tmp = pow(a, b / BigInteger(2));
+  tmp = (tmp * tmp) % m;
+  if ((b % BigInteger(2)) == 0) return tmp;
+  return (tmp * a) % m;
+}
+
 BigInteger long_mul(const BigInteger& x, const BigInteger& y) {
   if (x.is_zero() || y.is_zero()) {
     return BigInteger(0);
@@ -491,5 +500,9 @@ BigInteger long_div(const BigInteger& x, const BigInteger& y, BigInteger& mod) {
 }
 
 // kattis:
-// addition: simpleaddition
-// powers of 2: wizardofodds
+// simpleaddition: add
+// wizardofodds: powers of 2
+// pseudoprime: too slow, used intm.cpp instead 
+// 
+// codeforces:
+// acmsguru 112, can also python
