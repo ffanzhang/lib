@@ -379,14 +379,14 @@ std::ostream& operator<<(std::ostream& stream, BigInteger v) {
   return stream;
 }
 
-/*
 BigInteger pow(const BigInteger& a, const BigInteger& b) {
   if (b == BigInteger(0)) return BigInteger(1);
+  if (b == BigInteger(1)) return a;
   BigInteger tmp = pow(a, b / BigInteger(2));
-  if (b.z[0] % 2 == 0) return tmp * tmp;
-  return tmp * tmp * a;
+  tmp = tmp * tmp;
+  if ((b % BigInteger(2)) == 0) return tmp;
+  return tmp * a;
 }
-*/
 
 BigInteger long_mul(const BigInteger& x, const BigInteger& y) {
   if (x.is_zero() || y.is_zero()) {
@@ -460,6 +460,7 @@ BigInteger long_div(const BigInteger& x, const BigInteger& y, BigInteger& mod) {
       }
     }
     // test_int should be >= tmp
+    test_int = b * BigInteger(lo);
     if (test_int == tmp) {
       cur_digit = lo;
     } else {
@@ -474,7 +475,7 @@ BigInteger long_div(const BigInteger& x, const BigInteger& y, BigInteger& mod) {
   }
   tmp.trim();
   res.trim();
-  if (ysign != xsign) {
+  if (ysign != xsign && tmp > 0) {
     mod = b - tmp;
   } else {
     mod = tmp;
@@ -488,3 +489,7 @@ BigInteger long_div(const BigInteger& x, const BigInteger& y, BigInteger& mod) {
   // this version rounds to zero, python rounds to negative infinity
   return res;
 }
+
+// kattis:
+// addition: simpleaddition
+// powers of 2: wizardofodds
