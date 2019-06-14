@@ -238,6 +238,9 @@ void testBigInteger() {
   } catch (const char *e) {
     cout << e << '\n';
   }
+  for (int i = 0; i < 62; i++) {
+    assert(pow(BigInteger(2), i) == BigInteger(1ll << i));
+  }
 
   // deep copy test
   BigInteger m(1);
@@ -414,19 +417,15 @@ void testintmMatrix() {
 }
 
 int main() {
-  /*
-testUnion();
-testSegmentTree();
-testFlow();
-testShortestPath();
-*/
+  testUnion();
+  testSegmentTree();
+  testFlow();
+  testShortestPath();
   testBigInteger();
-  /*
   testIO();
   testSudoku();
   testMatrix();
   testintm();
   testintmMatrix();
-  */
   return 0;
 }
