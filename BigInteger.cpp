@@ -8,7 +8,7 @@
 
 class BigInteger;
 BigInteger long_mul(const BigInteger& x, const BigInteger& y);
-BigInteger long_div(const BigInteger& x, const BigInteger& y, BigInteger&);
+BigInteger long_div(const BigInteger& x, const BigInteger& y, BigInteger& rem);
 BigInteger pow(const BigInteger& a, const BigInteger& b);
 BigInteger pow_mod(const BigInteger& a, const BigInteger& b,
                    const BigInteger& m);
@@ -373,9 +373,9 @@ BigInteger long_mul(const BigInteger& x, const BigInteger& y) {
   return c;
 }
 
-BigInteger long_div(const BigInteger& x, const BigInteger& y, BigInteger& mod) {
+BigInteger long_div(const BigInteger& x, const BigInteger& y, BigInteger& rem) {
   if (y.is_zero()) {
-    throw std::overflow_error("BigInteger Division by Zero.");
+    throw std::domain_error("BigInteger Division by Zero.");
   }
   bool xsign = x.is_positive();
   bool ysign = y.is_positive();
@@ -388,17 +388,17 @@ BigInteger long_div(const BigInteger& x, const BigInteger& y, BigInteger& mod) {
 
   if (a.is_zero() || b > a) {
     if (xsign != ysign && !a.is_zero()) {
-      mod = b - a;
+      rem = b - a;
     } else {
-      mod = a;
+      rem = a;
     }
     if (ysign == false) {
-      mod.negate();
+      rem.negate();
     }
     return BigInteger(0);
   }
   if (a == b) {
-    mod = BigInteger(0);
+    rem = BigInteger(0);
     return res_postive ? BigInteger(1) : BigInteger(-1);
   }
 
@@ -432,15 +432,15 @@ BigInteger long_div(const BigInteger& x, const BigInteger& y, BigInteger& mod) {
   tmp.trim();
   res.trim();
   if (ysign != xsign && tmp > 0) {
-    mod = b - tmp;
+    rem = b - tmp;
   } else {
-    mod = tmp;
+    rem = tmp;
   }
   if (!res_postive) {
     res.negate();
   }
   if (ysign == false) {
-    mod.negate();
+    rem.negate();
   }
   // this version rounds to zero, python rounds to negative infinity
   return res;
