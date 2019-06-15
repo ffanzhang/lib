@@ -129,25 +129,113 @@ std::string exec(const char *cmd) {
 }
 
 void testBigInteger() {
-  // small numbers
   BigInteger zero(0);
+  // zero has a size of 1
+  assert(zero.digits.size() == 1);
+  assert(zero.digits.back() == 0);
+  string sp1(1000, '1');
+  string sp2(1000, '2');
+  string sp3(1000, '3');
+  BigInteger ones(sp1);
+  BigInteger twos(sp2);
+  BigInteger threes(sp3);
+  BigInteger negative_ones('-' + sp1);
+  BigInteger negative_twos('-' + sp2);
+  BigInteger negative_threes('-' + sp3);
+
+  assert(zero == -zero);
+
+  // adding zero with all other numbers
+  assert(zero + zero == zero);
+  assert(zero + negative_ones == negative_ones);
+  assert(negative_ones + zero == negative_ones);
+  assert(zero + ones == ones);
+  assert(ones + zero == ones);
+
+  // subtracting zero with all other numbers
+  assert(zero - zero == zero);
+  assert(zero - negative_ones == ones);
+  assert(negative_ones - zero == negative_ones);
+  assert(zero - ones == negative_ones);
+  assert(ones - zero == ones);
+
+  // times zero with all other numbers
+  assert(zero * zero == zero);
+  assert(zero * negative_ones == zero);
+  assert(negative_ones * zero == zero);
+  assert(zero * ones == zero);
+  assert(ones * zero == zero);
+
+  // division
+  assert(zero / negative_ones == zero);
+  assert(zero / ones == zero);
+
+  // modulo
+  assert(zero % negative_ones == zero);
+  assert(zero % ones == zero);
+
+  try {
+    BigInteger(100) / 0;
+    throw "Expected BigInteger Division by Zero Error.";
+  } catch (std::overflow_error e) {
+    // expected an divide by zero exception
+  } catch (const char *e) {
+    cout << e << '\n';
+  }
+
+  assert(ones + twos == threes);
+  assert(twos + ones == threes);
+  assert(ones + negative_twos == negative_ones);
+  assert(negative_twos + ones == negative_ones);
+  assert(negative_ones + negative_twos == negative_threes);
+  assert(negative_twos + negative_ones == negative_threes);
+
+  assert(ones - twos == negative_ones);
+  assert(twos - ones == ones);
+  assert(ones - negative_twos == threes);
+  assert(negative_twos - ones == negative_threes);
+  assert(negative_ones - negative_twos == ones);
+  assert(negative_twos - negative_ones == negative_ones);
+
+  assert(ones * 2 == twos);
+  assert(BigInteger(2) * ones == twos);
+  assert(ones * -2 == negative_twos);
+  assert(negative_twos * -1 == twos);
+  assert(BigInteger(-1) * negative_twos == twos);
+  assert(negative_twos * -1 == twos);
+
+  assert(ones / twos == 0);
+  assert(twos / ones == 2);
+  assert(ones / negative_twos == 0);
+  assert(negative_twos / ones == -2);
+  assert(negative_ones / negative_twos == 0);
+  assert(negative_twos / negative_ones == 2);
+
+  assert(ones % twos == ones);
+  assert(twos % ones == 0);
+  assert(ones % negative_twos == negative_ones);
+  assert(negative_twos % ones == 0);
+  assert(negative_ones % negative_twos == negative_ones);
+  assert(negative_twos % negative_ones == 0);
+
+  // small numbers
   BigInteger a(11);
   BigInteger b(11);
   assert(a + b == BigInteger(22));
   assert(a - b == BigInteger(0));
   assert(a * b == BigInteger(121));
+  assert(a / b == BigInteger(1));
 
-  // zero has a size of 1
-  assert(zero.digits.size() == 1);
-  assert(zero.digits.back() == 0);
-
-  // adding zero with all other numbers
-  assert(BigInteger(0) + BigInteger(0) == BigInteger(0));
-  assert(BigInteger(0) + BigInteger(-123123123) == BigInteger(-123123123));
-  assert(BigInteger(-382321) + BigInteger(0) == BigInteger(-382321));
-  assert(BigInteger(0) + BigInteger(12321) == BigInteger(12321));
-  assert(BigInteger(348) + BigInteger(0) == BigInteger(348));
-  assert(BigInteger(1283) + BigInteger(376) == BigInteger(1659));
+  for (int i = 0; i < 1000; i++) {
+    long long x = 0;
+    long long y = 0;
+    for (int j = 0; j < 100; j++) {
+      x += rand() % 1000000000000000;
+      y += rand() % 100;
+    }
+    BigInteger xy = BigInteger(x) / BigInteger(y);
+    assert(xy == x / y);
+  }
 
   // test some overflows
   assert(BigInteger(1000 * 1000 * 1000 - 1) + BigInteger(1) ==
@@ -188,8 +276,15 @@ void testBigInteger() {
   assert(f < e);
   assert(-e < -f);
   assert(l < f);
-
   assert(BigInteger(-1) - BigInteger(-1) == BigInteger(0));
+
+  assert(BigInteger(0) > -1ll);
+  assert(BigInteger(0) <= 0ll);
+  assert(BigInteger(0) <= 1ll);
+  assert(BigInteger(0) >= 0ll);
+  assert(BigInteger(0) >= -1ll);
+  assert(BigInteger(0) == 0ll);
+  assert(BigInteger(0) != 1ll);
 
   BigInteger z = BigInteger(100);
   assert(++z == 101);
@@ -202,17 +297,6 @@ void testBigInteger() {
   assert(z++ == 101);
   assert(z == 102);
 
-  // do 1000 random divisions
-  for (int i = 0; i < 1000; i++) {
-    BigInteger x(rand());
-    BigInteger y(rand() + 1);
-    for (int j = 0; j < 1000; j++) {
-      x = x + BigInteger(rand());
-      y = y + BigInteger(rand() % 100);
-    }
-    BigInteger xy = BigInteger(x) / BigInteger(y);
-    assert(xy == x / y);
-  }
   ifstream fin("BigIntegero.txt");
   string s, sa, sb;
   while (fin >> sa >> sb) {
@@ -230,14 +314,6 @@ void testBigInteger() {
     assert(a % b == BigInteger(s));
   }
   // test division by 0;
-  try {
-    z / 0;
-    throw "Expected BigInteger Division by Zero Error.";
-  } catch (std::overflow_error e) {
-    // expected an divide by zero exception
-  } catch (const char *e) {
-    cout << e << '\n';
-  }
   for (int i = 0; i < 62; i++) {
     assert(pow(BigInteger(2), i) == BigInteger(1ll << i));
   }

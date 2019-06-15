@@ -9,6 +9,9 @@
 class BigInteger;
 BigInteger long_mul(const BigInteger& x, const BigInteger& y);
 BigInteger long_div(const BigInteger& x, const BigInteger& y, BigInteger&);
+BigInteger pow(const BigInteger& a, const BigInteger& b);
+BigInteger pow_mod(const BigInteger& a, const BigInteger& b,
+                   const BigInteger& m);
 
 class BigInteger {
  public:
@@ -34,23 +37,12 @@ class BigInteger {
   void print() const;
   std::string to_string() const;
 
-  // assum well formed input for internal calls and maintain invariance
-  // before calling other functions
   BigInteger& append_sign();
-  BigInteger& sign_extend(unsigned int num_digits);
+  BigInteger& sign_extend(std::size_t num_digits);
   BigInteger& trim();
   BigInteger& negate();
   BigInteger& operator=(const BigInteger&);
-  unsigned int& operator[](int i);
-
-  // prefix increment
-  BigInteger& operator++();
-  // postfix increment
-  BigInteger operator++(int);
-  // prefix decrement
-  BigInteger& operator--();
-  // postfix decrement
-  BigInteger operator--(int);
+  unsigned int& operator[](std::size_t i);
 
   BigInteger abs() const;
   BigInteger operator-() const;
@@ -59,7 +51,6 @@ class BigInteger {
   BigInteger operator*(const BigInteger&)const;
   BigInteger operator/(const BigInteger&) const;
   BigInteger operator%(const BigInteger&) const;
-  BigInteger operator%(const long long&) const;
 
   bool operator<(const BigInteger&) const;
   bool operator>(const BigInteger&) const;
@@ -68,12 +59,10 @@ class BigInteger {
   bool operator==(const BigInteger&) const;
   bool operator!=(const BigInteger&) const;
 
-  bool operator<(const long long) const;
-  bool operator>(const long long) const;
-  bool operator<=(const long long) const;
-  bool operator>=(const long long) const;
-  bool operator==(const long long) const;
-  bool operator!=(const long long) const;
+  BigInteger& operator++();
+  BigInteger& operator--();
+  BigInteger operator++(int);
+  BigInteger operator--(int);
 
   friend std::istream& operator>>(std::istream&, BigInteger&);
   friend std::ostream& operator<<(std::ostream&, BigInteger);
@@ -105,11 +94,13 @@ BigInteger& BigInteger::trim() {
     digits.push_back(base - 1);
     return *this;
   }
+  return *this;
 }
 
-BigInteger& BigInteger::sign_extend(unsigned int num_digits) {
-  assert(digits.size() > 0 &&
-         (digits.back() == 0 || digits.back() == (base - 1)));
+BigInteger& BigInteger::sign_extend(std::size_t num_digits) {
+  if (num_digits == digits.size()) {
+    return *this;
+  }
   while (digits.size() < num_digits) {
     digits.push_back(digits.back());
   }
@@ -212,30 +203,17 @@ BigInteger& BigInteger::operator=(const BigInteger& v) {
   return *this;
 }
 
-unsigned int& BigInteger::operator[](int i) { return digits[i]; }
+unsigned int& BigInteger::operator[](std::size_t i) { return digits[i]; }
 
 BigInteger BigInteger::operator+(const BigInteger& v) const {
-  if (v.is_zero()) {
-    return *this;
-  }
-  if (is_zero()) {
-    return v;
-  }
   BigInteger res(v);
-  if (digits.size() > v.digits.size()) {
-    res.sign_extend(digits.size());
-  }
-  long long carry = 0, i = 0;
-  for (i = 0; i < digits.size(); i++) {
-    res[i] += digits[i] + carry;
-    carry = res[i] / base;
-    res[i] = res[i] % base;
-  }
-  // sign extending without actually doing it
-  for (; i < res.digits.size(); i++) {
-    res[i] += digits.back() + carry;
-    carry = res[i] / base;
-    res[i] = res[i] % base;
+  res.sign_extend(std::max(digits.size(), v.digits.size()));
+  for (long long i = 0, carry = 0; i < std::max(digits.size(), v.digits.size());
+       i++) {
+    res.digits[i] +=
+        digits[std::min(i, (long long)(digits.size() - 1))] + carry;
+    carry = res.digits[i] / base;
+    res.digits[i] = res.digits[i] % base;
   }
   res.append_sign();
   res.trim();
@@ -257,12 +235,6 @@ BigInteger BigInteger::operator/(const BigInteger& v) const {
 BigInteger BigInteger::operator%(const BigInteger& v) const {
   BigInteger mod;
   long_div(*this, v, mod);
-  return mod;
-}
-
-BigInteger BigInteger::operator%(const long long& v) const {
-  BigInteger mod;
-  long_div(*this, BigInteger(v), mod);
   return mod;
 }
 
@@ -327,30 +299,6 @@ bool BigInteger::operator!=(const BigInteger& v) const {
   return *this < v || v < *this;
 }
 
-bool BigInteger::operator<(const long long v) const {
-  return *this < BigInteger(v);
-}
-
-bool BigInteger::operator>(const long long v) const {
-  return BigInteger(v) < *this;
-}
-
-bool BigInteger::operator<=(const long long v) const {
-  return !(BigInteger(v) < *this);
-}
-
-bool BigInteger::operator>=(const long long v) const {
-  return !(*this < BigInteger(v));
-}
-
-bool BigInteger::operator==(const long long v) const {
-  return *this == BigInteger(v);
-}
-
-bool BigInteger::operator!=(const long long v) const {
-  return *this != BigInteger(v);
-}
-
 std::string BigInteger::to_string() const {
   BigInteger v(*this);
   std::ostringstream oss;
@@ -388,7 +336,8 @@ BigInteger pow(const BigInteger& a, const BigInteger& b) {
   return tmp * a;
 }
 
-BigInteger pow_mod(const BigInteger& a, const BigInteger& b, const BigInteger& m) {
+BigInteger pow_mod(const BigInteger& a, const BigInteger& b,
+                   const BigInteger& m) {
   if (b == BigInteger(0)) return BigInteger(1);
   if (b == BigInteger(1)) return a % m;
   BigInteger tmp = pow(a, b / BigInteger(2));
@@ -402,10 +351,8 @@ BigInteger long_mul(const BigInteger& x, const BigInteger& y) {
     return BigInteger(0);
   }
   BigInteger c;
-  unsigned int op_size = std::max(x.digits.size(), y.digits.size()) * 2ll;
   int valid_digits = x.digits.size() + y.digits.size() - 1;
-
-  c.sign_extend(op_size);
+  c.sign_extend(std::max(x.digits.size(), y.digits.size()) * 2ll);
   for (long long i = 0; i < valid_digits; i++) {
     for (long long j = 0, carry = 0; j + i < valid_digits; j++) {
       long long s =
@@ -440,10 +387,10 @@ BigInteger long_div(const BigInteger& x, const BigInteger& y, BigInteger& mod) {
   BigInteger res;
 
   if (a.is_zero() || b > a) {
-    if (xsign == ysign) {
-      mod = a;
-    } else {
+    if (xsign != ysign && !a.is_zero()) {
       mod = b - a;
+    } else {
+      mod = a;
     }
     if (ysign == false) {
       mod.negate();
@@ -502,7 +449,10 @@ BigInteger long_div(const BigInteger& x, const BigInteger& y, BigInteger& mod) {
 // kattis:
 // simpleaddition: add
 // wizardofodds: powers of 2
-// pseudoprime: too slow, used intm.cpp instead 
-// 
+// pseudoprime: too slow, used intm.cpp instead
+//
 // codeforces:
 // acmsguru 112, can also python
+//
+// euler13: add
+// euler16: powers of 2
