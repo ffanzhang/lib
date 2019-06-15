@@ -406,17 +406,19 @@ void checkboard(char *soln) {
 }
 
 void testSudoku() {
-  freopen("Sudoku.txt", "r", stdin);
-  char board[81];
-  string line;
-  for (int j = 0; j < 9; j++) {
-    cin >> line;
-    for (int i = 0; i < 9; i++) {
-      board[j * 9 + i] = line[i] - '0';
+  for (int i = 0; i < 10000; i++) {
+    freopen("Sudoku.txt", "r", stdin);
+    char board[81];
+    string line;
+    for (int j = 0; j < 9; j++) {
+      cin >> line;
+      for (int i = 0; i < 9; i++) {
+        board[j * 9 + i] = line[i] - '0';
+      }
     }
+    char *soln = sudoku::solve(board);
+    checkboard(soln);
   }
-  char *soln = sudoku::solve(board);
-  checkboard(soln);
 }
 
 void testMatrix() {
