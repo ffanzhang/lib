@@ -177,7 +177,7 @@ void testBigInteger() {
   try {
     BigInteger(100) / 0;
     throw "Expected BigInteger Division by Zero Error.";
-  } catch (std::overflow_error e) {
+  } catch (std::domain_error e) {
     // expected an divide by zero exception
   } catch (const char *e) {
     cout << e << '\n';
