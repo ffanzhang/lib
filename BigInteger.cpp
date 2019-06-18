@@ -381,16 +381,6 @@ BigInteger long_mul(const BigInteger& x, const BigInteger& y) {
 }
 
 BigInteger BigInteger::lower_half(int m) const {
-  /*
-if (m > digits.size()) {
-  unsigned long long sign = digits.back();
-  std::vector<unsigned long long> new_digits(m, sign);
-  std::copy(digits.begin(), digits.end(), new_digits.begin());
-  new_digits.push_back(0);
-  return BigInteger(new_digits).trim();
-} else {
-}
-*/
   if (is_zero()) {
     return BigInteger(0);
   }

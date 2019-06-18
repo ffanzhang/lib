@@ -13,6 +13,17 @@ test: $(OBJFILES)
 	@python test_BigInteger.py > BigIntegero.txt 
 	time ./test
 
+test_big_int: $(OBJFILES) 
+	clang-format -i -style=Google ../*.cpp ./*.cpp test.cpp
+	$(CC) -o test $(OBJFILES) 
+	@python test_BigInteger.py > BigIntegero.txt 
+	time ./test big_int
+
+test_wo_big_int: $(OBJFILES) 
+	clang-format -i -style=Google ../*.cpp ./*.cpp test.cpp
+	$(CC) -o test $(OBJFILES) 
+	time ./test wo_big_int
+
 clean:
 	rm -rf *.o
 	rm -rf test

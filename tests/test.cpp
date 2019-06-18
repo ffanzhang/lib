@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <iostream>
+#include <memory>
 #include "BigIntegerTest.cpp"
 #include "Flow.cpp"
 #include "IO.cpp"
@@ -19,12 +20,14 @@ void testSegmentTreeHelper(vector<E> &elements, I n) {
   for (I i = 0; i < n; i++) {
     elements.push_back(i + 1);
   }
-  SegmentTree<I, E> t1(elements, MyMax<E>());
+  unique_ptr<MyMax<E>> mymax(new MyMax<E>());
+  SegmentTree<I, E> t1(elements, *mymax);
   assert(t1.query(0, 100) == 100);
   assert(t1.query(0, 50) == 50);
   assert(t1.query(50, 100) == 100);
 
-  SegmentTree<I, E> t2(elements, MySum<E>());
+  unique_ptr<MySum<E>> mysum(new MySum<E>());
+  SegmentTree<I, E> t2(elements, *mysum);
 
   assert(t2.query(0, 100) == 5050);
   assert(t2.query(0, 50) == (50 * 51) / 2);
@@ -287,25 +290,35 @@ void testintmMatrix() {
   assert(r2[0][0] == intm(349361645, 1000000007));
   auto r3 = m.pow(399);
   assert(r3[0][0] == intm(967250938, 1000000007));
-  Matrix<int, intm> x(0, 0);
-  cin >> x;
-  cout << x << endl;
 }
 
-int main() {
-  /*
-testUnion();
-testSegmentTree();
-testFlow();
-testShortestPath();
-*/
-  testBigInteger();
-  /*
-  testIO();
+int main(int argc, char *argv[]) {
+  if (argc > 1 && string(argv[1]) == "big_int") {
+    testBigInteger();
+    return 0;
+  }
+  if (argc > 1 && string(argv[1]) == "wo_big_int") {
+    testUnion();
+    testSegmentTree();
+    testFlow();
+    testShortestPath();
+    testSudoku();
+    testMatrix();
+    testintm();
+    testintmMatrix();
+    testIO();
+    return 0;
+  }
+
+  testUnion();
+  testSegmentTree();
+  testFlow();
+  testShortestPath();
   testSudoku();
   testMatrix();
   testintm();
   testintmMatrix();
-  */
+  testBigInteger();
+  testIO();
   return 0;
 }
