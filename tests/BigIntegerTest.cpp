@@ -51,6 +51,25 @@ void long_mul_karatsuba_benchmark() {
   }
 }
 
+void long_div_benchmark() {
+  vector<BigInteger> as;
+  vector<BigInteger> bs;
+  BigInteger c;
+  as.clear();
+  bs.clear();
+  for (int i = 0; i < 100; i++) {
+    as.push_back(make_a_BigInteger(100));
+    bs.push_back(make_a_BigInteger(25));
+  }
+
+  cout << "Starting division benchmark\n";
+  clock_t start = clock();
+  for (int i = 0; i < 100; i++) {
+    long_div(as[i], bs[i], c);
+  }
+  cout << clock() - start << '\n';
+}
+
 void testBigInteger() {
   BigInteger zero(0);
   // zero has a size of 1
@@ -264,4 +283,5 @@ void testBigInteger() {
   assert(n == 12);
   long_mul_karatsuba();
   long_mul_karatsuba_benchmark();
+  long_div_benchmark();
 }

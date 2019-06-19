@@ -445,57 +445,87 @@ BigInteger karatsuba(const BigInteger& x, const BigInteger& y) {
   return c;
 }
 
+BigInteger compute_rem(bool xsign, bool ysign, const BigInteger& div,
+                       const BigInteger& rem) {
+  BigInteger new_rem = rem;
+  if (xsign != ysign && !rem.is_zero()) {
+    new_rem = div - rem;
+  }
+  return (ysign == false) ? new_rem.negate() : new_rem;
+}
+
 BigInteger long_div(const BigInteger& x, const BigInteger& y, BigInteger& rem) {
   if (y.is_zero()) {
     throw std::domain_error("BigInteger Division by Zero.");
   }
   bool xsign = x.is_positive();
   bool ysign = y.is_positive();
-  bool res_postive = (xsign == ysign);
+  bool res_positive = (xsign == ysign);
 
   BigInteger a(x.abs());
   BigInteger b(y.abs());
-  BigInteger tmp;
-  BigInteger res;
 
   if (a.is_zero() || b > a) {
-    if (xsign != ysign && !a.is_zero()) {
-      rem = b - a;
-    } else {
-      rem = a;
-    }
-    if (ysign == false) {
-      rem.negate();
-    }
+    rem = compute_rem(xsign, ysign, b, a);
     return BigInteger(0);
   }
+
   if (a == b) {
     rem = BigInteger(0);
-    return res_postive ? BigInteger(1) : BigInteger(-1);
+    return res_positive ? BigInteger(1) : BigInteger(-1);
   }
 
+  if (a.digits.size() == 2 && b.digits.size() == 2) {
+    unsigned long long q = a.digits[0] / b.digits[0];
+    rem = compute_rem(xsign, ysign, b, BigInteger(a.digits[0] % b.digits[0]));
+    return res_positive ? BigInteger(q) : BigInteger(-q);
+  }
+
+  BigInteger res;
+  BigInteger tmp;
+  tmp.digits.clear();
+  std::copy(a.digits.end() - b.digits.size() + 1, a.digits.end(),
+            back_inserter(tmp.digits));
+
   BigInteger test_int;
-  for (int i = a.digits.size() - 1; i >= 0; i--) {
+  for (int i = a.digits.size() - b.digits.size(); i >= 0; i--) {
     tmp.digits.insert(tmp.digits.begin(), a.digits[i]);
-    unsigned long long lo = 0ll, hi = a.base, cur_digit = 0ll;
-    while (lo < hi) {
-      unsigned long long mid = lo + (hi - lo) / 2ll;
-      test_int = long_mul(b, mid);
-      if (test_int < tmp) {
-        lo = mid + 1;
-      } else {
-        hi = mid;
+
+    unsigned long long lo = 0, hi = a.base, cur_digit = 0ll;
+    if (tmp > b) {
+      // these two blobs narrow down binary search range
+      if (tmp.digits.size() >= 2 && tmp.digits.size() == b.digits.size()) {
+        lo = tmp.digits[tmp.digits.size() - 2] /
+             (b.digits[b.digits.size() - 2] + 1);
+        hi = (tmp.digits[tmp.digits.size() - 2] + 1) /
+             b.digits[b.digits.size() - 2];
       }
-    }
-    // test_int should be >= tmp
-    test_int = b * BigInteger(lo);
-    if (test_int == tmp) {
-      cur_digit = lo;
-    } else {
-      cur_digit = std::max(0ull, lo - 1);
-    }
-    if (cur_digit > 0) {
-      tmp = tmp - b * BigInteger(cur_digit);
+      if (tmp.digits.size() >= 3 && b.digits.size() >= 2 &&
+          tmp.digits.size() > b.digits.size()) {
+        lo = (tmp.digits[tmp.digits.size() - 2] * b.base +
+              tmp.digits[tmp.digits.size() - 3]) /
+             (b.digits[b.digits.size() - 2] + 1);
+        hi = (tmp.digits[tmp.digits.size() - 2] * b.base +
+              tmp.digits[tmp.digits.size() - 3] + 1) /
+             (b.digits[b.digits.size() - 2]);
+      }
+      while (lo < hi) {
+        unsigned long long mid = lo + (hi - lo) / 2ll;
+        test_int = b * mid;
+        if (test_int < tmp) {
+          lo = mid + 1;
+        } else {
+          hi = mid;
+        }
+      }
+      if (b * lo > tmp) {
+        cur_digit = std::max(lo - 1ull, 0ull);
+      } else {
+        cur_digit = lo;
+      }
+      if (cur_digit > 0) {
+        tmp = tmp - b * BigInteger(cur_digit);
+      }
     }
     res.digits.insert(res.digits.begin(), cur_digit);
     tmp.trim();
@@ -503,16 +533,9 @@ BigInteger long_div(const BigInteger& x, const BigInteger& y, BigInteger& rem) {
   }
   tmp.trim();
   res.trim();
-  if (ysign != xsign && tmp > 0) {
-    rem = b - tmp;
-  } else {
-    rem = tmp;
-  }
-  if (!res_postive) {
+  rem = compute_rem(xsign, ysign, b, tmp);
+  if (!res_positive) {
     res.negate();
-  }
-  if (ysign == false) {
-    rem.negate();
   }
   // this version rounds to zero, python rounds to negative infinity
   return res;
