@@ -28,6 +28,10 @@ test_tsp: tsp.o
 	$(CC) -o tsp tsp.o
 	./tsp
 
+test_fenwick: fenwick.o
+	$(CC) -o fenwick fenwick.o
+	./fenwick
+
 clean:
 	rm -rf *.o
 	rm -rf test
@@ -37,3 +41,6 @@ test.o: test.cpp
 
 tsp.o:  ../tsp.cpp
 	$(CC) -std=c++11 -O2 -g -c ../tsp.cpp
+
+fenwick.o:  ../tsp.cpp
+	$(CC) -std=c++11 -O2 -g -c ../fenwick.cpp

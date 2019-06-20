@@ -5,9 +5,11 @@ test
 test.o
 *.cc
 *.in
+*.dSYM
 
 tests/test
 tests/tsp
+tests/fenwick
 tests/*.out*
 tests/*.o
 tests/*.o
