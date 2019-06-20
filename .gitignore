@@ -6,6 +6,8 @@ test.o
 *.cc
 *.in
 
-tests/a.out
 tests/test
-tests/test.o
+tests/tsp
+tests/*.out*
+tests/*.o
+tests/*.o

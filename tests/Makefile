@@ -24,9 +24,16 @@ test_wo_big_int: $(OBJFILES)
 	$(CC) -o test $(OBJFILES) 
 	time ./test wo_big_int
 
+test_tsp: tsp.o
+	$(CC) -o tsp tsp.o
+	./tsp
+
 clean:
 	rm -rf *.o
 	rm -rf test
 
 test.o: test.cpp
 	$(CC) $(CFLAGS) test.cpp
+
+tsp.o:  ../tsp.cpp
+	$(CC) -std=c++11 -O2 -g -c ../tsp.cpp
