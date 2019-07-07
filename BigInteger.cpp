@@ -369,8 +369,9 @@ BigInteger long_mul(const BigInteger& x, const BigInteger& y) {
   for (std::size_t i = 0; i < valid_digits; i++) {
     unsigned long long carry = 0;
     for (std::size_t j = 0; j + i < valid_digits; j++) {
-      c.digits[i + j] += carry + x.digits[std::min(i, x.digits.size() - 1)] *
-                                     y.digits[std::min(j, y.digits.size() - 1)];
+      c.digits[i + j] += carry +
+                         x.digits[std::min(i, x.digits.size() - 1)] *
+                             y.digits[std::min(j, y.digits.size() - 1)];
       carry = c.digits[i + j] / c.base;
       c.digits[i + j] %= c.base;
     }
