@@ -1,15 +1,16 @@
 #include <cassert>
 #include <cstdint>
 #include <cstdlib>
+#include <ctime>
 #include <iostream>
 #include <memory>
+
 #include "BigIntegerTest.cpp"
 #include "Flow.cpp"
 #include "IO.cpp"
 #include "Matrix.cpp"
 #include "SegmentTree.cpp"
 #include "ShortestPath.cpp"
-#include "Sudoku.cpp"
 #include "Union.cpp"
 #include "intm.cpp"
 
@@ -177,51 +178,6 @@ void testIO() {
   io::write_double(34.334, 10);
 }
 
-void checkboard(char *soln) {
-  assert(soln != nullptr);
-  for (int j = 0; j < 9; j++) {
-    int sum = 0;
-    for (int i = 0; i < 9; i++) {
-      sum += soln[j * 9 + i];
-    }
-    assert(sum == 45);
-  }
-  for (int i = 0; i < 9; i++) {
-    int sum = 0;
-    for (int j = 0; j < 9; j++) {
-      sum += soln[j * 9 + i];
-    }
-    assert(sum == 45);
-  }
-  for (int k = 0; k < 9; k++) {
-    int row_start = k / 3 * 3;
-    int col_start = k % 3 * 3;
-    int sum = 0;
-    for (int j = row_start; j < row_start + 3; j++) {
-      for (int i = col_start; i < col_start + 3; i++) {
-        sum += soln[j * 9 + i];
-      }
-    }
-    assert(sum == 45);
-  }
-}
-
-void testSudoku() {
-  for (int i = 0; i < 10000; i++) {
-    freopen("Sudoku.txt", "r", stdin);
-    char board[81];
-    string line;
-    for (int j = 0; j < 9; j++) {
-      cin >> line;
-      for (int i = 0; i < 9; i++) {
-        board[j * 9 + i] = line[i] - '0';
-      }
-    }
-    char *soln = sudoku::solve(board);
-    checkboard(soln);
-  }
-}
-
 void testMatrix() {
   // use fib matrix to test multiplication and power
   vector<vector<int>> data = {{1, 1}, {1, 0}};
@@ -302,7 +258,6 @@ int main(int argc, char *argv[]) {
     testSegmentTree();
     testFlow();
     testShortestPath();
-    testSudoku();
     testMatrix();
     testintm();
     testintmMatrix();
@@ -314,7 +269,6 @@ int main(int argc, char *argv[]) {
   testSegmentTree();
   testFlow();
   testShortestPath();
-  testSudoku();
   testMatrix();
   testintm();
   testintmMatrix();

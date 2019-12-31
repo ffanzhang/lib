@@ -120,8 +120,7 @@ inline void write_string(const std::string& s) {
 struct Flusher {
   ~Flusher() { Flusher::flush(); }
   static void flush() {
-    if (write_pos)
-      fwrite(write_buf, 1, write_pos, stdout), write_pos = 0;
+    if (write_pos) fwrite(write_buf, 1, write_pos, stdout), write_pos = 0;
   }
 } flusher;
 
