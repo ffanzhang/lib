@@ -4,7 +4,7 @@ else
 CC = g++
 endif
 INCLUDE = -I../
-CFLAGS = -std=c++11 -O2 -g -c ${INCLUDE}
+CFLAGS = -std=c++17 -O2 -g -c ${INCLUDE}
 OBJFILES = test.o
 
 lint:

@@ -10,7 +10,7 @@ using namespace std;
 void testBigInteger();
 
 BigInteger make_a_BigInteger(int size) {
-  vector<unsigned long long> d(size);
+  vector<uint64_t> d(size);
   for (auto& e : d) {
     e = rand() % (1000 * 1000 * 1000);
   }

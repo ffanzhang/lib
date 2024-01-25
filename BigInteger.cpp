@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cassert>
+#include <cstdint>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
@@ -16,23 +17,23 @@ BigInteger pow_mod(const BigInteger& a, const BigInteger& b,
 
 class BigInteger {
  public:
-  const unsigned long long base = 1000 * 1000 * 1000;
+  const uint64_t base = 1000 * 1000 * 1000;
   const int base_digits = 9;
 
   // most significant digit determines the sign,
   // MSB of [0, boundary) means positive
   // [boundary, base) means negative
   // sign extension appends 0 or (base - 1) to MSD
-  const unsigned long long boundary = base / 2ll;
-  std::vector<unsigned long long> digits;
+  const uint64_t boundary = base / static_cast<uint64_t>(2);
+  std::vector<uint64_t> digits;
 
   // need to maintain a vector size of 1 at all times
   BigInteger() : digits(1, 0) {}
   ~BigInteger() { digits.clear(); }
-  BigInteger(const long long&);
+  BigInteger(const int64_t&);
   BigInteger(const std::string&);
   BigInteger(const BigInteger&);
-  BigInteger(const std::vector<unsigned long long>&);
+  BigInteger(const std::vector<uint64_t>&);
 
   bool is_zero() const;
   bool is_positive() const;
@@ -46,7 +47,7 @@ class BigInteger {
   BigInteger& trim();
   BigInteger& negate();
   BigInteger& operator=(const BigInteger&);
-  unsigned long long& operator[](std::size_t i);
+  uint64_t& operator[](std::size_t i);
 
   BigInteger abs() const;
   BigInteger upper_half(int) const;
@@ -108,7 +109,7 @@ BigInteger& BigInteger::sign_extend(std::size_t num_digits) {
   if (num_digits <= digits.size()) {
     return *this;
   }
-  unsigned long long sign = digits.back();
+  uint64_t sign = digits.back();
   std::size_t n = digits.size();
   digits.resize(num_digits);
   std::fill(digits.begin() + n, digits.end(), sign);
@@ -165,13 +166,13 @@ void BigInteger::print() const {
   std::cout << '\n';
 }
 
-BigInteger::BigInteger(const long long& v) {
+BigInteger::BigInteger(const int64_t& v) {
   if (v == 0) {
     digits.push_back(0);
     return;
   }
   bool neg = false;
-  long long val = v;
+  int64_t val = v;
   if (val < 0) {
     neg = true;
     val = -val;
@@ -195,7 +196,7 @@ BigInteger::BigInteger(const std::string& s) {
     }
   }
   for (int i = s.size() - 1; i >= pos; i -= base_digits) {
-    long long x = 0;
+    int64_t x = 0;
     for (int j = std::max(pos, i - base_digits + 1); j <= i; j++) {
       x = x * 10 + s[j] - '0';
     }
@@ -208,21 +209,25 @@ BigInteger::BigInteger(const std::string& s) {
   }
 }
 
-BigInteger::BigInteger(const BigInteger& v) { digits = v.digits; }
+BigInteger::BigInteger(const BigInteger& v) {
+  digits.assign(v.digits.begin(), v.digits.end());
+}
 
-BigInteger::BigInteger(const std::vector<unsigned long long>& v) { digits = v; }
+BigInteger::BigInteger(const std::vector<uint64_t>& v) {
+  digits.assign(v.begin(), v.end());
+}
 
 BigInteger& BigInteger::operator=(const BigInteger& v) {
   digits = v.digits;
   return *this;
 }
 
-unsigned long long& BigInteger::operator[](std::size_t i) { return digits[i]; }
+uint64_t& BigInteger::operator[](std::size_t i) { return digits[i]; }
 
 BigInteger BigInteger::operator+(const BigInteger& v) const {
   BigInteger res(v);
   res.sign_extend(std::max(digits.size(), v.digits.size()));
-  unsigned long long carry = 0;
+  uint64_t carry = 0;
   for (std::size_t i = 0; i < std::max(digits.size(), v.digits.size()); i++) {
     res.digits[i] += digits[std::min(i, (digits.size() - 1))] + carry;
     carry = res.digits[i] / base;
@@ -367,7 +372,7 @@ BigInteger long_mul(const BigInteger& x, const BigInteger& y) {
   int valid_digits = x.digits.size() + y.digits.size() - 1;
   c.sign_extend(valid_digits);
   for (std::size_t i = 0; i < valid_digits; i++) {
-    unsigned long long carry = 0;
+    uint64_t carry = 0;
     for (std::size_t j = 0; j + i < valid_digits; j++) {
       c.digits[i + j] += carry + x.digits[std::min(i, x.digits.size() - 1)] *
                                      y.digits[std::min(j, y.digits.size() - 1)];
@@ -384,8 +389,8 @@ BigInteger BigInteger::lower_half(int m) const {
   if (is_zero()) {
     return BigInteger(0);
   }
-  std::vector<unsigned long long> new_digits(
-      digits.begin(), std::min(digits.begin() + m, digits.end()));
+  std::vector<uint64_t> new_digits(digits.begin(),
+                                   std::min(digits.begin() + m, digits.end()));
   new_digits.push_back(0);
   return BigInteger(new_digits).trim();
 }
@@ -397,7 +402,7 @@ BigInteger BigInteger::upper_half(int m) const {
   if (m >= digits.size()) {
     return BigInteger(0);
   }
-  std::vector<unsigned long long> new_digits(digits.begin() + m, digits.end());
+  std::vector<uint64_t> new_digits(digits.begin() + m, digits.end());
   new_digits.push_back(0);
   return BigInteger(new_digits).trim();
 }
@@ -406,7 +411,7 @@ BigInteger& BigInteger::shift_left(std::size_t n) {
   if (is_zero()) {
     return *this;
   }
-  std::vector<unsigned long long> new_digits(digits.size() + n);
+  std::vector<uint64_t> new_digits(digits.size() + n);
   std::copy(digits.begin(), digits.end(), new_digits.begin() + n);
   digits = new_digits;
   return *this;
@@ -476,7 +481,7 @@ BigInteger long_div(const BigInteger& x, const BigInteger& y, BigInteger& rem) {
   }
 
   if (a.digits.size() == 2 && b.digits.size() == 2) {
-    unsigned long long q = a.digits[0] / b.digits[0];
+    uint64_t q = a.digits[0] / b.digits[0];
     rem = compute_rem(xsign, ysign, b, BigInteger(a.digits[0] % b.digits[0]));
     return res_positive ? BigInteger(q) : BigInteger(-q);
   }
@@ -491,7 +496,7 @@ BigInteger long_div(const BigInteger& x, const BigInteger& y, BigInteger& rem) {
   for (int i = a.digits.size() - b.digits.size(); i >= 0; i--) {
     tmp.digits.insert(tmp.digits.begin(), a.digits[i]);
 
-    unsigned long long lo = 0, hi = a.base, cur_digit = 0ll;
+    uint64_t lo = 0, hi = a.base, cur_digit = 0ll;
     if (tmp > b) {
       // these two blobs narrow down binary search range
       if (tmp.digits.size() >= 2 && tmp.digits.size() == b.digits.size()) {
@@ -510,7 +515,7 @@ BigInteger long_div(const BigInteger& x, const BigInteger& y, BigInteger& rem) {
              (b.digits[b.digits.size() - 2]);
       }
       while (lo < hi) {
-        unsigned long long mid = lo + (hi - lo) / 2ll;
+        uint64_t mid = lo + (hi - lo) / static_cast<uint64_t>(2);
         test_int = b * mid;
         if (test_int < tmp) {
           lo = mid + 1;
@@ -519,7 +524,7 @@ BigInteger long_div(const BigInteger& x, const BigInteger& y, BigInteger& rem) {
         }
       }
       if (b * lo > tmp) {
-        cur_digit = std::max(lo - 1ull, 0ull);
+        cur_digit = std::max<uint64_t>(lo - static_cast<uint64_t>(1), 0);
       } else {
         cur_digit = lo;
       }
